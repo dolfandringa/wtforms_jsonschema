@@ -8,15 +8,17 @@ JSONSchema is not specifically meant to be used to describe forms, but actually 
 ## Installation
 Clone the repository form github and install it with
 ```bash
-git clone https://github.com/dolfandringa/wtforms_jsonschema.git
-cd wtforms_jsonschema
-python setup.py install
+pip install wtforms_jsonschema2
+```
+If you also want [Flask Appbuilder](http://flask-appbuilder.readthedocs.io/en/latest/intro.html) support, install with
+```
+pip install wtforms_jsonschema2[fab]
 ```
 
 ## Testing
-Unittests can be run with pytest in the root folder by running
+Unittests can be run with
 ```bash
-pytest
+python setup.py test
 ```
 
 ## Usage
@@ -98,9 +100,9 @@ OrderedDict([('type', 'object'),
 
 ## Extending
 
-The library is based around the ```wtforms_jsonschema.base.BaseConverter``` class.
+The library is based around the ```wtforms_jsonschema2.base.BaseConverter``` class.
 This class has methods that are all decorated with ```@converts(*<classes>)```.
-These convertion methods return the tuple (fieldtype, options, required) which are a string, dict and boolean that signify the JSONSchema type, additional parameters for the field like [enum](https://spacetelescope.github.io/understanding-json-schema/reference/generic.html#enumerated-values) or other value restrictions derived from the validators and whether the field is required.
+These conversion methods return the tuple (fieldtype, options, required) which are a string, dict and boolean respectively that signify the JSONSchema type, additional parameters for the field like [enum](https://spacetelescope.github.io/understanding-json-schema/reference/generic.html#enumerated-values) or other value restrictions derived from the validators and whether the field is required.
 
 To support additional fields, either contribute back by adding functions to the BaseConverter class that convert your specific field,
 or create a new class that inherits from BaseConverter and adds functions for your specific field types.
