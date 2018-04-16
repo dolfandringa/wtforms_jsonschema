@@ -1,6 +1,9 @@
-# WTForms JSONSchema
-WTForms JSONSchema is a converter to turn forms made with WTForms into a OrderedDict following the JSONSchema syntax.
-It keeps the order of the original WTForm fields intact.
+# WTForms JSONSchema 2
+WTForms JSONSchema 2 is a converter to turn forms made with WTForms into a OrderedDict following the JSONSchema syntax.
+
+It was developed independently of wtforms_jsonschema. Main differences are that it is unit tested, adds support for validators and is easier to extend. That being said, not all fields that are supported by wtforms_jsonschema are supported by wtforms_jsonschema2.
+
+The order of the original WTForm fields are kept intact.
 The use case is to communicate these forms with other applications that will then display these forms. For instance a backend can make a simple CRUD application using [Flask Appbuilder](http://flask-appbuilder.readthedocs.io/en/latest/intro.html) but also expose some forms to another frontend made in [Angular](https://angular.io) or in a mobile app using [Ionic](https://ionicframework.com).
 
 JSONSchema is not specifically meant to be used to describe forms, but actually is quite extensive and provides enough flexibility to describe forms quite well. It supports limitations to fields, similar to validators, like email, url, date-time string formats, length limitations, minimum/maximum values for numbers, etc. For more info see [Understanding JSON Schema by the Space Telescope Science Institute](https://spacetelescope.github.io/understanding-json-schema/)
@@ -127,3 +130,7 @@ class MyConverter(BaseConverter):
             options['maximum'] = vals[NumberRange].max
         return fieldtype, options, required
 ```
+
+## Credits
+
+WTForms JSONSchema 2 is developed by [Dolf Andringa](https://allican.be), but was inspired by the sqlalchemy conversion component of [Flask-Admin](https://github.com/flask-admin/flask-admin/) (especially the @converts decorator).
