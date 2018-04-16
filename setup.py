@@ -11,7 +11,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="wtforms_jsonschema",
-    version="0.1.0.dev1",
+    version="0.1.0.dev2",
     description="Package to convert WTForms to JSON Schema",
     long_description=long_description,
     url="https://github.com/dolfandringa/wtforms_jsonschema",
