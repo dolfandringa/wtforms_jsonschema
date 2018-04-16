@@ -10,7 +10,8 @@ with codecs.open('README.rst') as f:
     long_description = f.read()
 
 extras = {
-    'fab': ['flask_appbuilder']
+    'fab': ['flask_appbuilder'],
+    'test': ['pytest', 'pytest-cov']
 }
 
 setup(
@@ -24,7 +25,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=['wtforms'],
     setup_requires=['pytest-runner', 'm2r'],
-    tests_require=['pytest', 'pytest-cov']+extras['fab'],
+    tests_require=extras['test']+extras['fab'],
     extras_require=extras,
     project_urls={
         'Source': 'https://github.com/dolfandringa/wtforms_jsonschema/'
