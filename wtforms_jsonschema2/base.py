@@ -4,7 +4,6 @@ from wtforms.fields.core import (StringField, IntegerField, DateTimeField,
 from wtforms.validators import (Required, InputRequired, NumberRange, Length,
                                 Email)
 from decimal import Decimal
-from flask_appbuilder.fields import QuerySelectField
 import logging
 from .exceptions import UnsupportedFieldException
 from collections import OrderedDict
@@ -95,22 +94,6 @@ class BaseConverter(object):
     @converts(SelectField)
     def select_field(self, field):
         choices = field.choices
-        if all([isinstance(c, int) for c in choices]):
-            fieldtype = 'integer'
-        elif all([isinstance(c, (float, Decimal, int)) for c in choices]):
-            fieldtype = 'number'
-        else:
-            fieldtype = 'string'
-        options = {'enum': choices}
-        required = False
-        vals = dict([(v.__class__, v) for v in field.validators])
-        required = self._is_required(vals)
-
-        return fieldtype, options, required
-
-    @converts(QuerySelectField)
-    def query_select_field(self, field):
-        choices = field.query_func()
         if all([isinstance(c, int) for c in choices]):
             fieldtype = 'integer'
         elif all([isinstance(c, (float, Decimal, int)) for c in choices]):

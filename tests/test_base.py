@@ -1,14 +1,13 @@
 import copy
 from collections import OrderedDict
-from wtforms_jsonschema.base import BaseConverter
-from wtforms_jsonschema.exceptions import UnsupportedFieldException
+from wtforms_jsonschema2.base import BaseConverter
+from wtforms_jsonschema2.exceptions import UnsupportedFieldException
 from unittest import TestCase
 from wtforms.form import Form
 from wtforms import validators
 from wtforms.fields.core import (StringField, DecimalField, SelectField,
                                  IntegerField, Field, DateTimeField)
 from wtforms.widgets import TextInput
-from flask_appbuilder.fields import QuerySelectField
 
 
 class CustomField(Field):
@@ -18,22 +17,6 @@ class CustomField(Field):
 class UnsupportedForm(Form):
     custom_field = CustomField('Custom Field')
     first_name = StringField('First Name', validators=[validators.required()])
-
-
-class FABTestForm(Form):
-    _schema = {
-        'type': 'object',
-        'properties': {
-            'gender': {
-                'type': 'string',
-                'title': 'Gender',
-                'enum': ['Male', 'Female', 'Alien', 'Other']
-            }
-        }
-    }
-    gender = QuerySelectField('Gender',
-                              query_func=lambda: ['Male', 'Female',
-                                                  'Alien', 'Other'])
 
 
 class StringTestForm(Form):
@@ -143,10 +126,6 @@ class TestFormConvert(TestCase):
         correct_schema = copy.deepcopy(StringTestForm._schema)
         del(correct_schema['properties']['email'])
         self.assertEqual(schema, correct_schema)
-
-    def test_fab_form(self):
-        self.assertEqual(self.converter.convert(FABTestForm),
-                         FABTestForm._schema)
 
     def test_string_fields(self):
         self.assertEqual(self.converter.convert(StringTestForm),

@@ -9,8 +9,12 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+extras_require = {
+    'fab': ['flask_appbuilder']
+}
+
 setup(
-    name="wtforms_jsonschema",
+    name="wtforms_jsonschema2",
     version="0.1.0.dev2",
     description="Package to convert WTForms to JSON Schema",
     long_description=long_description,
@@ -19,9 +23,9 @@ setup(
     author_email="dolfandringa@gmail.com",
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=['wtforms'],
-    extras_require={
-        'test': ['pytest', 'pytest-cov']
-    },
+    setup_requires=['pytest-runner'],
+    test_requires=['pytest', 'pytest-cov']+extras_require['fab'],
+    extras_require=extras_require,
     project_urls={
         'Source': 'https://github.com/dolfandringa/wtforms_jsonschema/'
     }
