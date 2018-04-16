@@ -5,4 +5,4 @@ install:
     - pip install .[test]
     - pip install .[fab]
 script:
-    - python setup.py test
+    - pytest
