@@ -15,7 +15,7 @@ extras = {
 
 setup(
     name="wtforms_jsonschema2",
-    version="0.1.0.dev2",
+    version="0.1.0.dev3",
     description="Package to convert WTForms to JSON Schema",
     long_description=long_description,
     url="https://github.com/dolfandringa/wtforms_jsonschema",
