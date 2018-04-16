@@ -7,7 +7,7 @@ JSONSchema is not specifically meant to be used to describe forms, but actually 
 
 ## Installation
 Clone the repository form github and install it with
-```
+```bash
 git clone https://github.com/dolfandringa/wtforms_jsonschema.git
 cd wtforms_jsonschema
 python setup.py install
@@ -15,14 +15,14 @@ python setup.py install
 
 ## Testing
 Unittests can be run with pytest in the root folder by running
-```
+```python
 pytest
 ```
 
 ## Usage
 Here is an example how the package works:
 
-```
+```python
 from wtforms_jsonschema.base import BaseConverter
 from wtforms.form import Form
 from wtforms import validators
@@ -49,7 +49,7 @@ converter = BaseConverter()
 pprint(converter.convert(SimpleTestForm))
 ```
 Output:
-```
+```python
 OrderedDict([('type', 'object'),
              ('properties',
               OrderedDict([('first_name',
