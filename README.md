@@ -1,5 +1,6 @@
 # WTForms JSONSchema 2
 [![Build status](https://travis-ci.org/dolfandringa/wtforms_jsonschema.svg?branch=master)](https://travis-ci.org/dolfandringa/wtforms_jsonschema)
+
 WTForms JSONSchema 2 is a converter to turn forms made with WTForms into a OrderedDict following the JSONSchema syntax.
 
 It was developed independently of wtforms_jsonschema. Main differences are that it is unit tested, adds support for validators and is easier to extend. That being said, not all fields that are supported by wtforms_jsonschema are supported by wtforms_jsonschema2.
