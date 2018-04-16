@@ -110,7 +110,7 @@ This is an example for the DecimalField:
 ```python
 from wtforms.fields.core import DecimalField
 from wtforms.validators import NumberRange
-from wtforms_jsonschema.base import BaseConverter
+from wtforms_jsonschema.base import BaseConverter, converts
 
 class MyConverter(BaseConverter):
     @converts(DecimalField)
@@ -119,11 +119,9 @@ class MyConverter(BaseConverter):
         options = {}
         required = False
         vals = dict([(v.__class__, v) for v in field.validators])
-
         required = self._is_required(vals)
         if NumberRange in vals.keys():
             options['minimum'] = vals[NumberRange].min
             options['maximum'] = vals[NumberRange].max
-
         return fieldtype, options, required
 ```
