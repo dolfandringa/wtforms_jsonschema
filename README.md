@@ -15,7 +15,7 @@ python setup.py install
 
 ## Testing
 Unittests can be run with pytest in the root folder by running
-```python
+```bash
 pytest
 ```
 
@@ -29,6 +29,8 @@ from wtforms import validators
 from wtforms.fields.core import StringField, DecimalField, SelectField, IntegerField, Field, DateTimeField
 from wtforms.widgets import TextInput
 from pprint import pprint
+
+
 class SimpleTestForm(Form):
     """Simple Test Form displaying the conversion features"""
     first_name = StringField('First Name', validators=[validators.required()])
@@ -92,4 +94,36 @@ OrderedDict([('type', 'object'),
                              'title': 'DateTime',
                              'type': 'string'})])),
              ('required', ['first_name', 'age'])])
+```
+
+## Extending
+
+The library is based around the ```wtforms_jsonschema.base.BaseConverter``` class.
+This class has methods that are all decorated with ```@converts(*<classes>)```.
+These convertion methods return the tuple (fieldtype, options, required) which are a string, dict and boolean that signify the JSONSchema type, additional parameters for the field like [enum](https://spacetelescope.github.io/understanding-json-schema/reference/generic.html#enumerated-values) or other value restrictions derived from the validators and whether the field is required.
+
+To support additional fields, either contribute back by adding functions to the BaseConverter class that convert your specific field,
+or create a new class that inherits from BaseConverter and adds functions for your specific field types.
+
+This is an example for the DecimalField:
+
+```python
+from wtforms.fields.core import DecimalField
+from wtforms.validators import NumberRange
+from wtforms_jsonschema.base import BaseConverter
+
+class MyConverter(BaseConverter):
+    @converts(DecimalField)
+    def decimal_field(self, field):
+        fieldtype = 'number'
+        options = {}
+        required = False
+        vals = dict([(v.__class__, v) for v in field.validators])
+
+        required = self._is_required(vals)
+        if NumberRange in vals.keys():
+            options['minimum'] = vals[NumberRange].min
+            options['maximum'] = vals[NumberRange].max
+
+        return fieldtype, options, required
 ```
