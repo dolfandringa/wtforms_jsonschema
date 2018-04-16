@@ -10,7 +10,7 @@ WTForms JSONSchema 2
 
 WTForms JSONSchema 2 is a converter to turn forms made with WTForms into a OrderedDict following the JSONSchema syntax.
 
-It was developed independently of wtforms_jsonschema. Main differences are that it is unit tested, adds support for validators and is easier to extend. That being said, not all fields that are supported by wtforms_jsonschema are supported by wtforms_jsonschema2.
+It was developed independently of `wtforms_jsonschema <https://pypi.python.org/pypi/wtforms-jsonschema/>`_. Main differences are that it is unit tested, adds support for validators and is easier to extend. That being said, not all fields that are supported by wtforms_jsonschema are supported by wtforms_jsonschema2.
 
 The order of the original WTForm fields are kept intact.
 The use case is to communicate these forms with other applications that will then display these forms. For instance a backend can make a simple CRUD application using `Flask Appbuilder <http://flask-appbuilder.readthedocs.io/en/latest/intro.html>`_ but also expose some forms to another frontend made in `Angular <https://angular.io>`_ or in a mobile app using `Ionic <https://ionicframework.com>`_.
