@@ -1,4 +1,5 @@
 import copy
+from collections import OrderedDict
 from wtforms_jsonschema.base import BaseConverter
 from wtforms_jsonschema.exceptions import UnsupportedFieldException
 from unittest import TestCase
@@ -36,31 +37,31 @@ class FABTestForm(Form):
 
 
 class StringTestForm(Form):
-    _schema = {
-        'type': 'object',
-        'properties': {
-            'email': {
+    _schema = OrderedDict([
+        ('type', 'object'),
+        ('properties', OrderedDict([
+            ('email', {
                 'type': 'string',
                 'format': 'email',
                 'title': 'Email Address'
-            },
-            'length_string': {
+            }),
+            ('length_string', {
                 'type': 'string',
                 'minLength': 5,
                 'maxLength': 10,
                 'title': 'Name'
-            },
-            'simplestring': {
+            }),
+            ('simplestring', {
                 'type': 'string',
                 'title': 'Simple String'
-            },
-            'dt': {
+            }),
+            ('dt', {
                 'type': 'string',
                 'title': 'DateTime',
                 'format': 'date-time'
-            }
-        }
-    }
+            })
+        ]))
+    ])
     email = StringField('Email Address', validators=[validators.Email()])
     length_string = StringField('Name', validators=[validators.Length(5, 10)])
     simplestring = StringField('Simple String')
@@ -68,47 +69,47 @@ class StringTestForm(Form):
 
 
 class SimpleTestForm(Form):
-    _schema = {
-        'type': 'object',
-        'properties': {
-            'first_name': {
+    _schema = OrderedDict([
+        ('type', 'object'),
+        ('properties', OrderedDict([
+            ('first_name', {
                 'type': 'string',
-                'title': 'First Name',
-            },
-            'nick_name': {
+                'title': 'First Name'
+            }),
+            ('nick_name', {
                 'type': 'string',
                 'title': 'Nickname'
-            },
-            'age': {
+            }),
+            ('age', {
                 'type': 'integer',
                 'title': 'Age',
                 'minimum': 0,
                 'maximum': 10
-            },
-            'average': {
+            }),
+            ('average', {
                 'type': 'number',
                 'title': 'Average',
                 'minimum': 10,
                 'maximum': 1000
-            },
-            'gender': {
+            }),
+            ('gender', {
                 'type': 'string',
                 'title': 'Gender',
                 'enum': ['Male', 'Female', 'Alien', 'Other']
-            },
-            'some_field': {
+            }),
+            ('some_field', {
                 'type': 'integer',
                 'title': 'Bla',
                 'enum': [1, 2, 3]
-            },
-            'some_field2': {
+            }),
+            ('some_field2', {
                 'type': 'number',
                 'title': 'Bla',
                 'enum': [1.5, 2.2, 3]
-            }
-        },
-        'required': ['first_name', 'age']
-    }
+            })
+        ])),
+        ('required', ['first_name', 'age'])
+    ])
     first_name = StringField('First Name', validators=[validators.required()])
     nick_name = StringField('Nickname')
     age = IntegerField('Age', validators=[validators.number_range(0, 10),
@@ -128,6 +129,13 @@ class TestFormConvert(TestCase):
 
     def tearDown(self):
         pass
+
+    def test_field_order(self):
+        schema = self.converter.convert(SimpleTestForm)
+        self.assertEqual(list(schema.keys()),
+                         ['type', 'properties', 'required'])
+        self.assertEqual(schema['properties'].keys(),
+                         SimpleTestForm._schema['properties'].keys())
 
     def test_skip_fields(self):
         converter = BaseConverter(skip_fields=['email'])

@@ -130,10 +130,10 @@ class BaseConverter(object):
             form = form()
         fields = OrderedDict([(f.name, f) for f in form
                               if f.name not in self.skip_fields])
-        schema = {
-            "type": "object",
-            "properties": {}
-        }
+        schema = OrderedDict([
+            ("type", "object"),
+            ("properties", OrderedDict())
+        ])
         required = []
 
         for key, field in fields.items():
