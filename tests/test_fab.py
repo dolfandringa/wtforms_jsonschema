@@ -91,14 +91,20 @@ class Picture(Model):
 class PictureView(ModelView):
     datamodel = SQLAInterface(Picture)
     add_columns = ['picture']
-    _pretty_name = 'Picture'
+    show_title = 'Picture'
+    list_title = 'Pictures'
+    edit_title = 'Edit Picture'
+    add_title = 'Add Picture'
 
 
 class PersonView(ModelView):
     datamodel = SQLAInterface(Person)
     related_views = [PictureView]
-    add_columns = ['name', 'dt', 'person_type', 'pictures']
-    _pretty_name = 'Person'
+    add_columns = ['name', 'dt', 'person_type']
+    show_title = 'Person'
+    list_title = 'People'
+    edit_title = 'Edit Person'
+    add_title = 'Add Person'
 
 
 class PersonTypeView(ModelView):
@@ -135,7 +141,7 @@ person_schema = OrderedDict([
                     'type': 'array',
                     'title': 'Pictures',
                     'items': [
-                        {'$ref': '#/defintions/Picture'}
+                        {'$ref': '#/definitions/Picture'}
                     ]
                 })
             ])),

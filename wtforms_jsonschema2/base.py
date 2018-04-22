@@ -2,7 +2,7 @@ from wtforms.form import FormMeta
 from wtforms.fields.core import (StringField, IntegerField, DateTimeField,
                                  SelectField, DecimalField)
 from wtforms.validators import (Required, InputRequired, NumberRange, Length,
-                                Email)
+                                Email, DataRequired)
 from decimal import Decimal
 import logging
 from .exceptions import UnsupportedFieldException
@@ -34,7 +34,8 @@ class BaseConverter(object):
                     self.converters[classname] = obj
 
     def _is_required(self, vals):
-        return InputRequired in vals.keys() or Required in vals.keys()
+        return InputRequired in vals.keys() or Required in vals.keys() or \
+            DataRequired in vals.keys()
 
     @converts(DateTimeField)
     def date_time_field(self, field):
@@ -128,7 +129,8 @@ class BaseConverter(object):
             fieldtype, attrs, req = self.converters[cls](field)
             log.debug('fieldtype, attrs, req: %s, %s, %s' % (fieldtype, attrs,
                                                              req))
-            d['type'] = fieldtype
+            if fieldtype is not None:
+                d['type'] = fieldtype
             for k, v in attrs.items():
                 d[k] = v
             d['title'] = field.label.text

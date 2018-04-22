@@ -2,8 +2,8 @@ from flask_appbuilder.fields import QuerySelectField, QuerySelectMultipleField
 from collections import OrderedDict
 import logging
 from .base import BaseConverter, converts
-from decimal import Decimal
 import re
+from wtforms.form import Form
 
 log = logging.getLogger(__name__)
 
@@ -46,14 +46,20 @@ class FABConverter(BaseConverter):
         if form_type == 'edit':
             return view().edit_form
 
-    def _get_pretty_name(self, view):
+    def _get_pretty_name(self, view, form_type):
         """
         Get the pretty name of a view. If defined view._pretty_name will be
         used, else the name will be derived from the view name by taking the
         class name and removing  View from the name.
         """
-        if hasattr(view, '_pretty_name'):
-            return view._pretty_name
+        if form_type == 'add' and view().add_title != '':
+            return view().add_title
+        elif form_type == 'show' and view().show_title != '':
+            return view().show_title
+        elif form_type == 'list' and view().list_title != '':
+            return view().list_title
+        elif form_type == 'edit' and view().edit_title != '':
+            return view().edit_title
         else:
             return re.sub('[Vv]iew', '', view.__class__.__name__)
 
@@ -90,15 +96,21 @@ class FABConverter(BaseConverter):
             person = relationship(Person, backref="pictures")
 
         class PictureView(ModelView):
-            _pretty_name = 'Picture'
+            list_title = 'Pictures'
+            add_title = 'Add Picture'
+            edit_title = 'Edit Picture'
+            show_title = 'Picture'
             datamodel = Picture
             add_columns = ['picture']
 
         class PersonView(ModelView):
-            _pretty_name = 'Person'
+            show_title = 'Person'
+            edit_title = 'Edit Person'
+            add_title = 'Add Person'
+            list_title = 'People'
             datamodel = Person
             related_views = [PictureView]
-            add_columns = ['name', 'pictures']
+            add_columns = ['name']
 
         converter.convert({'Person': PersonView})
 
@@ -114,6 +126,7 @@ class FABConverter(BaseConverter):
                         "name": {"type": "string"},
                         "pictures": {
                             "type": "array",
+                            "title": "Pictures",
                             "items": [
                                 {"$ref": "#/definitions/Picture"}
                             ]
@@ -133,23 +146,37 @@ class FABConverter(BaseConverter):
         }
 
         """
+        if isinstance(views, Form) or issubclass(views, Form):
+            return super().convert(views)
+        try:
+            iter(views)
+        except TypeError:
+            views = [views]
         schema = OrderedDict([
             ('type', 'object'),
             ('definitions', OrderedDict([])),
             ('properties', OrderedDict([]))
         ])
-        try:
-            iter(views)
-        except TypeError:
-            views = [views]
         for view in views:
-            name = self._get_pretty_name(view)
+            name = self._get_pretty_name(view, 'show')
             schema['definitions'][name] = super().convert(
                 self._get_form(view,  form_type))
             schema['properties'][name] = {'$ref': '#/definitions/%s' % name}
 
             for v in view.related_views:
-                name2 = self._get_pretty_name(v)
-                schema['definitions'][name2] = super().convert(
-                    self._get_form(v, form_type))
+                for f in v.datamodel.get_related_fks([view]):
+                    defin = {}
+                    schema['definitions'][name]['properties'][f] = defin
+                    if view.datamodel.is_relation_one_to_many(f):
+                        title = self._get_pretty_name(v, 'list')
+                        obj_name = self._get_pretty_name(v, 'show')
+                        ref = '#/definitions/%s' % obj_name
+                        defin['type'] = 'array'
+                        defin['title'] = title
+                        defin['items'] = [{'$ref': ref}]
+                    else:
+                        title = obj_name = self._get_pretty_name(v, 'show')
+                        defin['$ref'] = '#/definitions/%s' % obj_name
+                    schema['definitions'][obj_name] = super().convert(
+                        self._get_form(v, form_type))
         return schema
