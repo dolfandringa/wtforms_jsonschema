@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from os import path
 import codecs
+import wtforms_jsonschema2
 
 here = path.abspath(path.dirname(__file__))
 
@@ -14,9 +15,10 @@ extras = {
     'test': ['pytest', 'pytest-cov']
 }
 
+
 setup(
     name="wtforms_jsonschema2",
-    version="0.3.0",
+    version=wtforms_jsonschema2.__version__,
     description="Package to convert WTForms to JSON Schema",
     long_description=long_description,
     url="https://github.com/dolfandringa/wtforms_jsonschema",
