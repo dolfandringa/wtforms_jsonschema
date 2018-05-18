@@ -9,7 +9,7 @@ from flask import Flask
 from flask_appbuilder import Model
 from flask_appbuilder import ModelView
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric
 from sqlalchemy.orm import relationship
 
 
@@ -88,6 +88,12 @@ class Picture(Model):
         return self.picture
 
 
+class Observation(Model):
+    id = Column(Integer, primary_key=True)
+    species = Column(String, nullable=False)
+    length = Column(Numeric)
+
+
 class PictureView(ModelView):
     datamodel = SQLAInterface(Picture)
     add_columns = ['picture']
@@ -112,9 +118,78 @@ class PersonTypeView(ModelView):
     related_views = [PersonView]
 
 
+class ObservationView(ModelView):
+    datamodel = SQLAInterface(Observation)
+    add_columns = ['species', 'length']
+    show_title = 'Observation'
+    add_title = 'Add Observation'
+
+
 appbuilder.add_view(PersonView, 'people')
 appbuilder.add_view(PersonTypeView, 'people types')
 appbuilder.add_view(PictureView, 'pictures')
+appbuilder.add_view(ObservationView, 'observations')
+
+person_observation_schema = OrderedDict([
+    ('type', 'object'),
+    ('definitions', OrderedDict([
+        ('Person', OrderedDict([
+            ('type', 'object'),
+            ('properties', OrderedDict([
+                ('name', {
+                    'type': 'string',
+                    'title': 'Name'
+                }),
+                ('dt', {
+                    'type': 'string',
+                    'format': 'date-time',
+                    'title': 'Dt'
+                }),
+                ('person_type', {
+                    'title': 'Person Type',
+                    'type': 'object',
+                    'enum': [{'id': '1', 'label': 'male'},
+                             {'id': '2', 'label': 'Person Type 2'}]
+                }),
+                ('pictures', {
+                    'type': 'array',
+                    'title': 'Pictures',
+                    'items': [
+                        {'$ref': '#/definitions/Picture'}
+                    ]
+                })
+            ])),
+            ('required', ['name', 'person_type'])
+        ])),
+        ('Picture', OrderedDict([
+            ('type', 'object'),
+            ('properties', OrderedDict([
+                ('picture', {'title': 'Picture', 'type': 'string'})
+            ])),
+            ('required', ['picture'])
+        ])),
+        ('Observation', OrderedDict([
+            ('type', 'object'),
+            ('properties', OrderedDict([
+                ('species', {
+                    'type': 'string',
+                    'title': 'Species'
+                }),
+                ('length', {
+                    'type': 'number',
+                    'title': 'Length'
+                })
+            ])),
+            ('required', ['species'])
+        ]))
+    ])),
+    ('type', 'object'),
+    ('properties', OrderedDict([
+        ('Person', {'$ref': '#/definitions/Person'}),
+        ('Observation', {'$ref': '#/definitions/Observation'})
+    ]))
+
+])
 
 person_schema = OrderedDict([
     ('type', 'object'),
@@ -185,6 +260,12 @@ class TestFABFormConvert(TestCase):
         pprint(schema)
         pprint(person_schema)
         self.assertEqual(schema, person_schema)
+
+    def test_full_multiple_view(self):
+        schema = self.converter.convert([PersonView, ObservationView])
+        pprint(schema)
+        pprint(person_observation_schema)
+        self.assertEqual(schema, person_observation_schema)
 
     def test_fab_form(self):
         schema = self.converter.convert(FABTestForm)

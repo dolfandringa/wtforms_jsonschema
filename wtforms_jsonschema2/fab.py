@@ -146,7 +146,8 @@ class FABConverter(BaseConverter):
         }
 
         """
-        if isinstance(views, Form) or issubclass(views, Form):
+        if not isinstance(views, list) and (isinstance(views, Form)
+                                            or issubclass(views, Form)):
             return super().convert(views)
         try:
             iter(views)
@@ -162,7 +163,8 @@ class FABConverter(BaseConverter):
             schema['definitions'][name] = super().convert(
                 self._get_form(view,  form_type))
             schema['properties'][name] = {'$ref': '#/definitions/%s' % name}
-
+            if view.related_views is None:
+                continue
             for v in view.related_views:
                 for f in v.datamodel.get_related_fks([view]):
                     defin = {}
