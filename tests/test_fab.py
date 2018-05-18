@@ -41,6 +41,7 @@ class FABTestForm(Form):
                                                   Gender(2, 'Female'),
                                                   Gender(3, 'Alien'),
                                                   Gender(4, 'Other')],
+                              allow_blank=True,
                               get_pk_func=lambda x: x.id)
 
 

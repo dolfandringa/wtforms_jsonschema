@@ -16,7 +16,8 @@ class FABConverter(BaseConverter):
 
     @converts(QuerySelectField)
     def query_select_field(self, field):
-        choices = list(field.iter_choices())
+        choices = [c for c in field.iter_choices() if c[0]!='__None']
+        log.debug("Choices: {}".format(choices))
         fieldtype = 'object'
         options = {'enum': [{'id': c[0], 'label': str(c[1])} for c in choices]}
         required = False
@@ -28,7 +29,8 @@ class FABConverter(BaseConverter):
     @converts(QuerySelectMultipleField)
     def query_select_multiple_field(self, field):
         fieldtype = 'array'
-        choices = list(field.iter_choices())
+        choices = [c for c in field.iter_choices() if c[0]!='__None']
+        log.debug("Choices: {}".format(choices))
 
         options = {'items': [{
             'type': 'object',
