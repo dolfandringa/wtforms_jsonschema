@@ -175,7 +175,7 @@ person_observation_schema = OrderedDict([
                     'title': 'Picture',
                     'type': 'string',
                     'contentEncoding': 'base64',
-                    'contentMediaType': 'image/jpg'
+                    'contentMediaType': 'image/jpeg'
                 })
             ])),
             ('required', ['picture'])
@@ -241,7 +241,7 @@ person_schema = OrderedDict([
                     'title': 'Picture',
                     'type': 'string',
                     'contentEncoding': 'base64',
-                    'contentMediaType': 'image/jpg'
+                    'contentMediaType': 'image/jpeg'
                 })
             ])),
             ('required', ['picture'])

@@ -21,7 +21,7 @@ class FABConverter(BaseConverter):
     def convert_image_field(self, field):
         fieldtype = 'string'
         options = {'contentEncoding': 'base64',
-                   'contentMediaType': 'image/jpg'}
+                   'contentMediaType': 'image/jpeg'}
         vals = dict([(v.__class__, v) for v in field.validators])
         required = self._is_required(vals)
 
