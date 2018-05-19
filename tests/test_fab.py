@@ -5,11 +5,13 @@ from unittest import TestCase
 from wtforms.form import Form
 from flask_appbuilder.fields import QuerySelectField
 from flask_appbuilder import SQLA, AppBuilder
-from flask import Flask
+from flask import Flask, url_for
 from flask_appbuilder import Model
 from flask_appbuilder import ModelView
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric
+from flask_appbuilder.models.mixins import ImageColumn
+from flask_appbuilder.filemanager import ImageManager
 from sqlalchemy.orm import relationship
 
 
@@ -47,6 +49,8 @@ class FABTestForm(Form):
 
 cfg = {'SQLALCHEMY_DATABASE_URI': 'sqlite:///',
        'CSRF_ENABLED': False,
+       'IMG_UPLOAD_URL': '/',
+       'IMG_UPLOAD_FOLDER': '/tmp/',
        'WTF_CSRF_ENABLED': False,
        'SECRET_KEY': 'bla'}
 
@@ -81,9 +85,11 @@ class Person(Model):
 
 class Picture(Model):
     id = Column(Integer, primary_key=True)
-    picture = Column(String, nullable=False)
     person_id = Column(Integer, ForeignKey('person.id'), nullable=False)
     person = relationship(Person, backref='pictures')
+    picture = Column(ImageColumn(size=(2048, 2048, False),
+                                 thumbnail_size=(800, 800, True)),
+                     nullable=False)
 
     def __repr__(self):
         return self.picture
@@ -165,7 +171,12 @@ person_observation_schema = OrderedDict([
         ('Picture', OrderedDict([
             ('type', 'object'),
             ('properties', OrderedDict([
-                ('picture', {'title': 'Picture', 'type': 'string'})
+                ('picture', {
+                    'title': 'Picture',
+                    'type': 'string',
+                    'contentEncoding': 'base64',
+                    'contentMediaType': 'image/jpg'
+                })
             ])),
             ('required', ['picture'])
         ])),
@@ -226,7 +237,12 @@ person_schema = OrderedDict([
         ('Picture', OrderedDict([
             ('type', 'object'),
             ('properties', OrderedDict([
-                ('picture', {'title': 'Picture', 'type': 'string'})
+                ('picture', {
+                    'title': 'Picture',
+                    'type': 'string',
+                    'contentEncoding': 'base64',
+                    'contentMediaType': 'image/jpg'
+                })
             ])),
             ('required', ['picture'])
         ]))

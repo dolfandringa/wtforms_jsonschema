@@ -11,7 +11,7 @@ with codecs.open('README.rst') as f:
     long_description = f.read()
 
 extras = {
-    'fab': ['flask_appbuilder'],
+    'fab': ['flask_appbuilder', 'pillow'],
     'test': ['pytest', 'pytest-cov']
 }
 

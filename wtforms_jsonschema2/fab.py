@@ -1,9 +1,12 @@
-from flask_appbuilder.fields import QuerySelectField, QuerySelectMultipleField
+from flask_appbuilder.fields import (QuerySelectField,
+                                     QuerySelectMultipleField)
+from flask_appbuilder.upload import ImageUploadField
 from collections import OrderedDict
 import logging
 from .base import BaseConverter, converts
 import re
 from wtforms.form import Form
+
 
 log = logging.getLogger(__name__)
 
@@ -14,10 +17,19 @@ class FABConverter(BaseConverter):
     flask appbuilder.
     """
 
+    @converts(ImageUploadField)
+    def convert_image_field(self, field):
+        fieldtype = 'string'
+        options = {'contentEncoding': 'base64',
+                   'contentMediaType': 'image/jpg'}
+        vals = dict([(v.__class__, v) for v in field.validators])
+        required = self._is_required(vals)
+
+        return fieldtype, options, required
+
     @converts(QuerySelectField)
     def query_select_field(self, field):
-        choices = [c for c in field.iter_choices() if c[0]!='__None']
-        log.debug("Choices: {}".format(choices))
+        choices = [c for c in field.iter_choices() if c[0] != '__None']
         fieldtype = 'object'
         options = {'enum': [{'id': c[0], 'label': str(c[1])} for c in choices]}
         required = False
@@ -29,8 +41,7 @@ class FABConverter(BaseConverter):
     @converts(QuerySelectMultipleField)
     def query_select_multiple_field(self, field):
         fieldtype = 'array'
-        choices = [c for c in field.iter_choices() if c[0]!='__None']
-        log.debug("Choices: {}".format(choices))
+        choices = [c for c in field.iter_choices() if c[0] != '__None']
 
         options = {'items': [{
             'type': 'object',
