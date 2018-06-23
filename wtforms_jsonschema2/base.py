@@ -1,6 +1,6 @@
 from wtforms.form import FormMeta
 from wtforms.fields.core import (StringField, IntegerField, DateTimeField,
-                                 SelectField, DecimalField)
+                                 SelectField, DecimalField, FormField)
 from wtforms.validators import (Required, InputRequired, NumberRange, Length,
                                 Email, DataRequired)
 from decimal import Decimal
@@ -121,11 +121,20 @@ class BaseConverter(object):
         required = []
 
         for key, field in fields.items():
-            log.debug('Converting field %s' % key)
             cls = field.__class__
+            log.debug('Converting field %s of type %s' % (key, cls))
+            log.debug('Supported fields: {}'.format(self.converters.keys()))
+            if cls == FormField:
+                log.debug("Subform: {}".format(field.form_class))
+                subform = self.convert(field.form_class)
+                log.debug("Converted: {}".format(subform))
+                schema['properties'][key] = subform
+                subform['title'] = field.label.text
+                continue
             if cls not in self.converters.keys():
                 raise UnsupportedFieldException(cls)
             d = {}
+            log.debug('Using converter %s' % self.converters[cls])
             fieldtype, attrs, req = self.converters[cls](field)
             log.debug('fieldtype, attrs, req: %s, %s, %s' % (fieldtype, attrs,
                                                              req))

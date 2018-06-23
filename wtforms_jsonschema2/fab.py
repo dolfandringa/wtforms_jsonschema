@@ -54,10 +54,13 @@ class FABConverter(BaseConverter):
         return fieldtype, options, required
 
     def _get_form(self, view, form_type):
+        if isinstance(view, type):
+            # Instantiate the view if not done already
+            view = view()
         if form_type == 'add':
-            return view().add_form
+            return view.add_form
         if form_type == 'edit':
-            return view().edit_form
+            return view.edit_form
 
     def _get_pretty_name(self, view, form_type):
         """
@@ -65,14 +68,17 @@ class FABConverter(BaseConverter):
         used, else the name will be derived from the view name by taking the
         class name and removing  View from the name.
         """
-        if form_type == 'add' and view().add_title != '':
-            return view().add_title
-        elif form_type == 'show' and view().show_title != '':
-            return view().show_title
-        elif form_type == 'list' and view().list_title != '':
-            return view().list_title
-        elif form_type == 'edit' and view().edit_title != '':
-            return view().edit_title
+        if isinstance(view, type):
+            # Instantiate the view if not done already
+            view = view()
+        if form_type == 'add' and view.add_title != '':
+            return view.add_title
+        elif form_type == 'show' and view.show_title != '':
+            return view.show_title
+        elif form_type == 'list' and view.list_title != '':
+            return view.list_title
+        elif form_type == 'edit' and view.edit_title != '':
+            return view.edit_title
         else:
             return re.sub('[Vv]iew', '', view.__class__.__name__)
 

@@ -4,15 +4,35 @@ from wtforms_jsonschema2.fab import FABConverter
 from unittest import TestCase
 from wtforms.form import Form
 from flask_appbuilder.fields import QuerySelectField
-from flask_appbuilder import SQLA, AppBuilder
-from flask import Flask, url_for
-from flask_appbuilder import Model
+from flask_appbuilder import AppBuilder
+from flask import Flask
 from flask_appbuilder import ModelView
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric
 from flask_appbuilder.models.mixins import ImageColumn
 from flask_appbuilder.filemanager import ImageManager
+from sqlalchemy import MetaData, create_engine
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
+
+
+cfg = {'SQLALCHEMY_DATABASE_URI': 'sqlite:///',
+       'CSRF_ENABLED': False,
+       'IMG_UPLOAD_URL': '/',
+       'IMG_UPLOAD_FOLDER': '/tmp/',
+       'WTF_CSRF_ENABLED': False,
+       'SECRET_KEY': 'bla'}
+
+
+app = Flask('wtforms_jsonschema2_fab_testing')
+app.config.update(cfg)
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+metadata = MetaData(bind=engine)
+db = SQLAlchemy(app, metadata=metadata)
+ctx = app.app_context()
+ctx.push()
+appbuilder = AppBuilder(app, db.session)
+db.session.commit()
 
 
 class Gender(object):
@@ -47,20 +67,7 @@ class FABTestForm(Form):
                               get_pk_func=lambda x: x.id)
 
 
-cfg = {'SQLALCHEMY_DATABASE_URI': 'sqlite:///',
-       'CSRF_ENABLED': False,
-       'IMG_UPLOAD_URL': '/',
-       'IMG_UPLOAD_FOLDER': '/tmp/',
-       'WTF_CSRF_ENABLED': False,
-       'SECRET_KEY': 'bla'}
-
-app = Flask('wtforms_jsonschema2_testing')
-app.config.update(cfg)
-db = SQLA(app)
-appbuilder = AppBuilder(app, db.session)
-
-
-class PersonType(Model):
+class PersonType(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
@@ -71,7 +78,7 @@ class PersonType(Model):
             return 'Person Type %s' % self.id
 
 
-class Person(Model):
+class Person(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     dt = Column(DateTime)
@@ -83,7 +90,7 @@ class Person(Model):
         return self.name
 
 
-class Picture(Model):
+class Picture(db.Model):
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey('person.id'), nullable=False)
     person = relationship(Person, backref='pictures')
@@ -95,7 +102,7 @@ class Picture(Model):
         return self.picture
 
 
-class Observation(Model):
+class Observation(db.Model):
     id = Column(Integer, primary_key=True)
     species = Column(String, nullable=False)
     length = Column(Numeric)
@@ -136,6 +143,7 @@ appbuilder.add_view(PersonView, 'people')
 appbuilder.add_view(PersonTypeView, 'people types')
 appbuilder.add_view(PictureView, 'pictures')
 appbuilder.add_view(ObservationView, 'observations')
+
 
 person_observation_schema = OrderedDict([
     ('type', 'object'),
@@ -261,8 +269,7 @@ class TestFABFormConvert(TestCase):
         self.maxDiff = None
         app.testing = True
         self.app = app.test_client()
-        ctx = app.app_context()
-        ctx.push()
+        self.db = db
         db.create_all()
         db.session.add(PersonType(name='male'))
         db.session.add(PersonType())
@@ -270,6 +277,10 @@ class TestFABFormConvert(TestCase):
         db.session.flush()
 
     def tearDown(self):
+        try:
+            self.db.session.commit()
+        except:
+            pass
         db.drop_all()
 
     def test_full_view(self):
@@ -277,12 +288,14 @@ class TestFABFormConvert(TestCase):
         pprint(schema)
         pprint(person_schema)
         self.assertEqual(schema, person_schema)
+        self.db.session.commit()
 
     def test_full_multiple_view(self):
         schema = self.converter.convert([PersonView, ObservationView])
         pprint(schema)
         pprint(person_observation_schema)
         self.assertEqual(schema, person_observation_schema)
+        self.db.session.commit()
 
     def test_fab_form(self):
         schema = self.converter.convert(FABTestForm)
@@ -290,3 +303,4 @@ class TestFABFormConvert(TestCase):
         pprint(FABTestForm._schema)
         self.assertEqual(schema,
                          FABTestForm._schema)
+        self.db.session.commit()

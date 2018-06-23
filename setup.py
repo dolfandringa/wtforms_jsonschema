@@ -12,6 +12,7 @@ with codecs.open('README.rst') as f:
 
 extras = {
     'fab': ['flask_appbuilder', 'pillow'],
+    'geofab': ['fab_geoalchemy', 'flask_appbuilder', 'pillow'],
     'test': ['pytest', 'pytest-cov']
 }
 
@@ -27,7 +28,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=['wtforms'],
     setup_requires=['pytest-runner', 'm2r'],
-    tests_require=extras['test']+extras['fab'],
+    tests_require=extras['test']+extras['fab']+extras['geofab'],
     extras_require=extras,
     project_urls={
         'Source': 'https://github.com/dolfandringa/wtforms_jsonschema/'
