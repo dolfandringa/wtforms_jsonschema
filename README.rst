@@ -28,9 +28,15 @@ Clone the repository form github and install it with
 
 If you also want `Flask Appbuilder <http://flask-appbuilder.readthedocs.io/en/latest/intro.html>`_ support, install with
 
-.. code-block::
+.. code-block:: bash
 
    pip install wtforms_jsonschema2[fab]
+
+And if you want Geoalchemy2 support for Geometry columns in Flask Appbuilder, install with
+
+.. code-block::
+
+   pip install wtforms_jsonschema[geofab]
 
 Testing
 -------
@@ -40,6 +46,12 @@ Unittests can be run with
 .. code-block:: bash
 
    python setup.py test
+
+or
+
+.. code-block:: bash
+
+   pytest
 
 Usage
 -----
@@ -78,6 +90,7 @@ Here is an example how the package works:
 Output:
 
 .. code-block:: python
+
 
    OrderedDict([('type', 'object'),
                 ('properties',
@@ -121,6 +134,88 @@ Output:
                                 'title': 'DateTime',
                                 'type': 'string'})])),
                 ('required', ['first_name', 'age'])])
+
+.. code-block:: python
+
+
+   from wtforms_jsonschema2.geofab import GeoFABConverter
+   from geoalchemy2 import Geometry
+   from fab_geoalchemy.interface import GeoSQLAInterface
+   from fab_geoalchemy.views import GeoModelView
+   from flask_sqlalchemy import SQLA
+   from sqlalchemy import Column, Integer, String
+
+   app = Flask('myapp')
+   app.config.update(cfg)
+   db = SQLA(app)
+   appbuilder = AppBuilder(app, db.session)
+
+   class GeoObservation(db.Model):
+       id = Column(Integer, primary_key=True)
+       name = Column(String, nullable=False)
+       location = Column(Geometry(geometry_type='POINT', srid=4326),
+                         nullable=False)
+
+       def __repr__(self):
+           return self.name
+
+
+   class GeoObservationView(GeoModelView):
+       datamodel = GeoSQLAInterface(GeoObservation)
+       add_columns = ['name', 'location']
+       show_title = 'GeoObservation'
+       add_title = 'Add GeoObservation'
+
+
+   appbuilder.add_view(GeoObservationView, 'observations')
+
+   ctx = app.app_context()
+   ctx.push()
+   db.create_all()
+   db.session.commit()
+
+   converter = GeoFABConverter()
+   schema = converter.convert(GeoObservationView)
+   pprint(schema)
+
+Output:
+
+.. code-block:: python
+
+   OrderedDict([
+       ('type', 'object'),
+       ('definitions', OrderedDict([
+           ('GeoObservation', OrderedDict([
+               ('type', 'object'),
+               ('properties', OrderedDict([
+                   ('name', {
+                       'type': 'string',
+                       'title': 'Name'
+                   }),
+                   ('location', OrderedDict([
+                       ('type', 'object'),
+                       ('properties', OrderedDict([
+                           ('lat', {
+                               'type': 'number',
+                               'title': 'Latitude',
+                           }),
+                           ('lon', {
+                               'type': 'number',
+                               'title': 'Longitude'
+                           })
+                       ])),
+                       ('required', ['lat', 'lon']),
+                       ('title', 'Location')
+                   ])),
+               ])),
+               ('required', ['name'])
+           ]))
+       ])),
+       ('type', 'object'),
+       ('properties', OrderedDict([
+           ('GeoObservation', {'$ref': '#/definitions/GeoObservation'})
+       ]))
+   ])
 
 Extending
 ---------
