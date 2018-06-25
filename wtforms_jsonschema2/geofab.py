@@ -45,8 +45,10 @@ class GeoFABConverter(FABConverter):
                     delattr(form, fname)
                     latfield = deepcopy(field)
                     latfield.args = ['Latitude']+list(field.args)[1:]
+                    latfield.kwargs['coordinate_type'] = 'latitude'
                     lonfield = deepcopy(field)
                     lonfield.args = ['Longitude']+list(field.args)[1:]
+                    lonfield.kwargs['coordinate_type'] = 'longitude'
 
                     class subform(Form):
                         pass
@@ -57,8 +59,9 @@ class GeoFABConverter(FABConverter):
 
     @converts(PointField)
     def convert_point_field(self, field):
-        fieldtype = 'number'
-        options = {}
+        fieldtype = 'string'
+        options = {'format': 'coordinate_point_{}'.format(
+            field.coordinate_type)}
         vals = dict([(v.__class__, v) for v in field.validators])
         required = self._is_required(vals)
 

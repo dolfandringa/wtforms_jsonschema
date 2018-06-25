@@ -63,12 +63,14 @@ observation_schema = OrderedDict([
                     ('type', 'object'),
                     ('properties', OrderedDict([
                         ('lat', {
-                            'type': 'number',
+                            'type': 'string',
                             'title': 'Latitude',
+                            'format': 'coordinate_point_latitude'
                         }),
                         ('lon', {
-                            'type': 'number',
-                            'title': 'Longitude'
+                            'type': 'string',
+                            'title': 'Longitude',
+                            'format': 'coordinate_point_longitude'
                         })
                     ])),
                     ('required', ['lat', 'lon']),
