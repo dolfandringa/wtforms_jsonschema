@@ -17,7 +17,8 @@ class GeoFABConverter(FABConverter):
 
     def convert(self, views, form_type='add'):
         log.debug("Calling GeoFABConverter.convert")
-        if isinstance(views, Form) or issubclass(views, Form):
+        if not isinstance(views, list) and (isinstance(views, Form)
+                                            or issubclass(views, Form)):
             return super(FABConverter, self).convert(views)
         newviews = []
         try:
