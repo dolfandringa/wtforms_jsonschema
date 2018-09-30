@@ -118,9 +118,8 @@ OrderedDict([('type', 'object'),
 ```python
 
 from wtforms_jsonschema2.geofab import GeoFABConverter
-from geoalchemy2 import Geometry
-from fab_geoalchemy.interface import GeoSQLAInterface
-from fab_geoalchemy.views import GeoModelView
+from fab_addon_geoalchemy.models import Geometry, GeoSQLAInterface
+from fab_addon_geoalchemy.views import GeoModelView
 from flask_sqlalchemy import SQLA
 from sqlalchemy import Column, Integer, String
 

@@ -3,13 +3,12 @@ from collections import OrderedDict
 from wtforms_jsonschema2.geofab import GeoFABConverter
 from unittest import TestCase
 from flask_appbuilder import AppBuilder
-from fab_geoalchemy.interface import GeoSQLAInterface
+from fab_addon_geoalchemy.models import GeoSQLAInterface, Geometry
 from flask import Flask
-from fab_geoalchemy.views import GeoModelView
+from fab_addon_geoalchemy.views import GeoModelView
 from sqlalchemy import Column, Integer, String
 from sqlalchemy import MetaData, create_engine
 from flask_sqlalchemy import SQLAlchemy
-from geoalchemy2 import Geometry
 import logging
 
 logging.getLogger('wtforms_jsonschema2').setLevel(logging.DEBUG)

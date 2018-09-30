@@ -2,32 +2,39 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from os import path
 import codecs
-import wtforms_jsonschema2
+import imp
+import os
+
+version = imp.load_source('version', os.path.join('wtforms_jsonschema2',
+                                                  'version.py'))
 
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with codecs.open('README.rst') as f:
+with codecs.open('README.md') as f:
     long_description = f.read()
 
 extras = {
     'fab': ['flask_appbuilder', 'pillow'],
-    'geofab': ['fab_geoalchemy', 'flask_appbuilder', 'pillow'],
+    'geofab': ['fab-addon-geoalchemy', 'flask_appbuilder', 'pillow'],
     'test': ['pytest', 'pytest-cov']
 }
 
 
 setup(
     name="wtforms_jsonschema2",
-    version=wtforms_jsonschema2.__version__,
+    version=version.version,
     description="Package to convert WTForms to JSON Schema",
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url="https://github.com/dolfandringa/wtforms_jsonschema",
     author="Dolf Andringa",
     author_email="dolfandringa@gmail.com",
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    include_package_data=True,
+    package_data={'': ['LICENSE']},
     install_requires=['wtforms'],
-    setup_requires=['pytest-runner', 'm2r'],
+    setup_requires=['pytest-runner'],
     tests_require=extras['test']+extras['fab']+extras['geofab'],
     extras_require=extras,
     project_urls={

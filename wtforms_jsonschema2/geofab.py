@@ -3,7 +3,7 @@ from .base import converts
 from .fab import FABConverter
 from wtforms.form import Form
 from wtforms.fields import FormField
-from fab_geoalchemy import PointField
+from fab_addon_geoalchemy.fields import PointField
 from copy import deepcopy
 
 
