@@ -8,9 +8,9 @@ from flask_appbuilder import AppBuilder
 from flask import Flask
 from flask_appbuilder import ModelView
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric
+from sqlalchemy import (Column, Integer, String, ForeignKey, DateTime, Numeric,
+                        Boolean)
 from flask_appbuilder.models.mixins import ImageColumn
-from flask_appbuilder.filemanager import ImageManager
 from sqlalchemy import MetaData, create_engine
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -94,6 +94,7 @@ class Picture(db.Model):
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey('person.id'), nullable=False)
     person = relationship(Person, backref='pictures')
+    validated = Column(Boolean)
     picture = Column(ImageColumn(size=(2048, 2048, False),
                                  thumbnail_size=(800, 800, True)),
                      nullable=False)
@@ -110,7 +111,7 @@ class Observation(db.Model):
 
 class PictureView(ModelView):
     datamodel = SQLAInterface(Picture)
-    add_columns = ['picture']
+    add_columns = ['picture', 'validated']
     show_title = 'Picture'
     list_title = 'Pictures'
     edit_title = 'Edit Picture'
@@ -184,7 +185,11 @@ person_observation_schema = OrderedDict([
                     'type': 'string',
                     'contentEncoding': 'base64',
                     'contentMediaType': 'image/jpeg'
-                })
+                }),
+                ('validated', {
+                    'title': 'Validated',
+                    'type': 'boolean'
+                }),
             ])),
             ('required', ['picture'])
         ])),
@@ -250,7 +255,11 @@ person_schema = OrderedDict([
                     'type': 'string',
                     'contentEncoding': 'base64',
                     'contentMediaType': 'image/jpeg'
-                })
+                }),
+                ('validated', {
+                    'title': 'Validated',
+                    'type': 'boolean'
+                }),
             ])),
             ('required', ['picture'])
         ]))

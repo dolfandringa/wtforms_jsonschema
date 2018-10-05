@@ -1,6 +1,7 @@
 from wtforms.form import FormMeta
 from wtforms.fields.core import (StringField, IntegerField, DateTimeField,
-                                 SelectField, DecimalField, FormField)
+                                 SelectField, DecimalField, FormField,
+                                 BooleanField)
 from wtforms.validators import (Required, InputRequired, NumberRange, Length,
                                 Email, DataRequired)
 from decimal import Decimal
@@ -36,6 +37,14 @@ class BaseConverter(object):
     def _is_required(self, vals):
         return InputRequired in vals.keys() or Required in vals.keys() or \
             DataRequired in vals.keys()
+
+    @converts(BooleanField)
+    def convert_boolean_field(self, field):
+        fieldtype = 'boolean'
+        vals = dict([(v.__class__, v) for v in field.validators])
+        required = self._is_required(vals)
+
+        return fieldtype, {}, required
 
     @converts(DateTimeField)
     def date_time_field(self, field):
