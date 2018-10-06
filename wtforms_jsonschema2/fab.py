@@ -73,6 +73,32 @@ class FABConverter(BaseConverter):
         if form_type == 'edit':
             return view.edit_form
 
+    def convert_view(self, view, form_type='add'):
+        schema = OrderedDict([
+            ('type', 'object'),
+            ('definitions', OrderedDict([])),
+            ('properties', OrderedDict([]))
+        ])
+        name = _get_pretty_name(view, 'show').replace(' ', '')
+        schema['definitions'][name] = super().convert(
+            self._get_form(view,  form_type))
+        schema['properties'][name] = {'$ref': '#/definitions/%s' % name}
+        if view.related_views is not None:
+            for v in view.related_views:
+                rel_name, rel_schema = self.convert_view(v, form_type)
+                for defin_k, defin in rel_schema['definitions'].items():
+                    schema['definitions'][defin_k] = defin
+                # del rel_schema['definitions']
+                # schema['definitions'][rel_name] = rel_schema
+                for f in v.datamodel.get_related_fks([view]):
+                    defin = _get_related_view_property(view, v, f)
+                    schema['definitions'][name]['properties'][f] = defin
+        if hasattr(view, '_conditional_relations'):
+            for condition in view._conditional_relations:
+                ckey, cval = condition.get_json_schema(view, self)
+                schema['definitions'][name][ckey] = cval
+        return name, schema
+
     def convert(self, views, form_type='add'):
         """
         Convert a list of Flask Appbuilder ModelViews to JSON Schema.
@@ -107,22 +133,9 @@ class FABConverter(BaseConverter):
             ('properties', OrderedDict([]))
         ])
         for view in views:
-            name = _get_pretty_name(view, 'show')
-            schema['definitions'][name] = super().convert(
-                self._get_form(view,  form_type))
-            schema['properties'][name] = {'$ref': '#/definitions/%s' % name}
-            if view.related_views is None:
-                continue
-            for v in view.related_views:
-                for f in v.datamodel.get_related_fks([view]):
-                    defin = _get_related_view_property(view, v, f)
-                    obj_name = _get_pretty_name(v, 'show')
-                    schema['definitions'][name]['properties'][f] = defin
-                    schema['definitions'][obj_name] = super().convert(
-                        self._get_form(v, form_type))
-            if hasattr(view, '_conditional_relations'):
-                for condition in view._conditional_relations:
-                    ckey, cval = condition.get_json_schema(view)
-                    schema['definitions'][name][ckey] = cval
-
+            name, view_schema = self.convert_view(view, form_type)
+            for k, v in view_schema['definitions'].items():
+                schema['definitions'][k] = v
+            for k, v in view_schema['properties'].items():
+                schema['properties'][k] = v
         return schema

@@ -8,17 +8,19 @@ def _get_related_view_property(view, related_view, field):
     """
     defin = {}
     if view.datamodel.is_relation_one_to_one(field):
-        title = obj_name = _get_pretty_name(related_view, 'show')
+        title = obj_name = _get_pretty_name(related_view, 'show')\
+            .replace(' ', '')
         defin['$ref'] = '#/definitions/%s' % obj_name
     elif view.datamodel.is_relation_one_to_many(field):
         title = _get_pretty_name(related_view, 'list')
-        obj_name = _get_pretty_name(related_view, 'show')
+        obj_name = _get_pretty_name(related_view, 'show').replace(' ', '')
         ref = '#/definitions/%s' % obj_name
         defin['type'] = 'array'
         defin['title'] = title
         defin['items'] = [{'$ref': ref}]
     else:
-        title = obj_name = _get_pretty_name(related_view, 'show')
+        title = obj_name = _get_pretty_name(related_view, 'show')\
+            .replace(' ', '')
         defin['$ref'] = '#/definitions/%s' % obj_name
     return defin
 
