@@ -309,10 +309,16 @@ class TestFABFormConvert(TestCase):
     def test_enum_field(self):
 
         class testform(Form):
-            enumfield = EnumField(['option1', 'option2'])
+            enumfield = EnumField(None, ['option1', 'option2'])
 
         field, req = self.converter.convert_field(testform().enumfield)
-        self.assertEqual(field, {'enum': ['option1', 'option2']})
+        self.assertEqual(field, {'enum': [{'id': 'option1',
+                                           'label': 'option1'},
+                                          {'id': 'option2',
+                                           'label': 'option2'}
+                                          ],
+                                 'title': 'Enumfield',
+                                 'type': 'string'})
 
     def test_fab_form(self):
         schema = self.converter.convert(FABTestForm)
