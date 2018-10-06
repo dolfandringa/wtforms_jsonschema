@@ -15,8 +15,8 @@ with codecs.open('README.md') as f:
     long_description = f.read()
 
 extras = {
-    'fab': ['flask_appbuilder', 'pillow'],
-    'geofab': ['fab-addon-geoalchemy', 'flask_appbuilder', 'pillow'],
+    'fab': ['Flask-AppBuilder>=1.13.0', 'pillow'],
+    'geofab': ['fab-addon-geoalchemy', 'Flask-AppBuilder>=1.13.0', 'pillow'],
     'test': ['pytest', 'pytest-cov']
 }
 
@@ -37,6 +37,9 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=extras['test']+extras['fab']+extras['geofab'],
     extras_require=extras,
+    dependency_links=[
+        'http://github.com/dolfandringa/Flask-AppBuilder/tarball/develop#egg=Flask-AppBuilder-1.13.0'
+    ],
     project_urls={
         'Source': 'https://github.com/dolfandringa/wtforms_jsonschema/'
     },

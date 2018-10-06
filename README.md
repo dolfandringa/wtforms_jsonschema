@@ -115,6 +115,78 @@ OrderedDict([('type', 'object'),
              ('required', ['first_name', 'age'])])
 ```
 
+Flask Appbuilder with its views is also supported.
+For example:
+The following model and views
+
+```
+        class Person(Model):
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+
+        class Picture(Model):
+            id = Column(Integer, primary_key=True)
+            picture = Column(Text)
+            person_id = Column(Integer, ForeignKey(person.id), nullable=False)
+            person = relationship(Person, backref="pictures")
+
+        class PictureView(ModelView):
+            list_title = 'Pictures'
+            add_title = 'Add Picture'
+            edit_title = 'Edit Picture'
+            show_title = 'Picture'
+            datamodel = Picture
+            add_columns = ['picture']
+
+        class PersonView(ModelView):
+            show_title = 'Person'
+            edit_title = 'Edit Person'
+            add_title = 'Add Person'
+            list_title = 'People'
+            datamodel = Person
+            related_views = [PictureView]
+            add_columns = ['name']
+
+        converter.convert({'Person': PersonView})
+```
+
+Should result in the following schema:
+
+```
+
+        {
+            "type": "object",
+            "definitions": {
+                "Person": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "pictures": {
+                            "type": "array",
+                            "title": "Pictures",
+                            "items": [
+                                {"$ref": "#/definitions/Picture"}
+                            ]
+                        }
+                    }
+                },
+                "Picture": {
+                    "type": "object",
+                    "properties": {
+                        "picture: {"type": "string"}
+                    }
+                }
+            },
+            "properties": {
+                "Person": {"$ref": "#/definitions/Person"}
+            }
+        }
+```
+
+The library also supports the fab_addon_geoalchemy addon for Flask Appbuilder, 
+which adds support for the PostGIS Geometry columns through the geoalchemy2
+library for SQLAlchemy. An example:
+
 ```python
 
 from wtforms_jsonschema2.geofab import GeoFABConverter
