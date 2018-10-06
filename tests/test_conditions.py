@@ -92,21 +92,21 @@ class Bycatch(db.Model):
 
 class BycatchView(ModelView):
     datamodel = SQLAInterface(Bycatch)
-    add_columns = ['fishing_gear', 'dead_observation_id']
+    add_columns = ['fishing_gear']
     show_title = 'Bycatch'
     add_title = 'Add Bycatch'
 
 
 class StrandingView(ModelView):
     datamodel = SQLAInterface(Stranding)
-    add_columns = ['stranding_info', 'dead_observation_id']
+    add_columns = ['stranding_info']
     show_title = 'Stranding'
     add_title = 'Add Stranding'
 
 
 class DeadObservationView(ModelView):
     datamodel = SQLAInterface(DeadObservation)
-    add_columns = ['cause_of_death', 'observation_id']
+    add_columns = ['cause_of_death']
     show_title = 'Dead Observation'
     add_title = 'Add Dead Observation'
     related_views = [BycatchView, StrandingView]
@@ -122,7 +122,7 @@ class DeadObservationView(ModelView):
 
 class LiveObservationView(ModelView):
     datamodel = SQLAInterface(LiveObservation)
-    add_columns = ['live_observation_type', 'observation_id']
+    add_columns = ['live_observation_type']
     show_title = 'Live Observation'
     add_title = 'Add Live Observation'
 
@@ -222,28 +222,18 @@ observation_schema = OrderedDict([
                 ('cause_of_death', {
                     'enum': [{'id': 'stranding', 'label': 'stranding'},
                              {'id': 'bycatch', 'label': 'bycatch'}],
-                    'title': 'Cause Of Deat',
+                    'title': 'Cause Of Death',
                     'type': 'string'
-                }),
-                ('stranding', {
-                    '$ref': '#/definitions/Stranding'
                 }),
                 ('bycatch', {
                     '$ref': '#/definitions/Bycatch'
                 }),
+                ('stranding', {
+                    '$ref': '#/definitions/Stranding'
+                }),
             ])),
+            ('required', ['cause_of_death']),
             ('oneOf', [
-                OrderedDict([
-                    ('properties', OrderedDict([
-                        ('cause_of_death', {
-                            'enum': [{'id': 'stranding', 'label': 'stranding'}]
-                        }),
-                        ('stranding', {
-                            '$ref': '#/definitions/Stranding'
-                        }),
-                     ])),
-                    ('required', ['cause_of_death', 'stranding']),
-                ]),
                 OrderedDict([
                     ('properties', OrderedDict([
                         ('cause_of_death', {
@@ -255,24 +245,39 @@ observation_schema = OrderedDict([
                      ])),
                     ('required', ['cause_of_death', 'bycatch']),
                 ]),
+                OrderedDict([
+                    ('properties', OrderedDict([
+                        ('cause_of_death', {
+                            'enum': [{'id': 'stranding', 'label': 'stranding'}]
+                        }),
+                        ('stranding', {
+                            '$ref': '#/definitions/Stranding'
+                        }),
+                     ])),
+                    ('required', ['cause_of_death', 'stranding']),
+                ]),
             ])
         ])),
 
-        # Stranding definition
-        ('Stranding', OrderedDict([
-            ('type', 'object'),
-            ('properties', OrderedDict([
-                ('stranding_info', {
-                    'type': 'string'
-                }),
-            ])),
-        ])),
 
         # Bycatch definition
         ('Bycatch', OrderedDict([
             ('type', 'object'),
             ('properties', OrderedDict([
                 ('fishing_gear', {
+                    'title': 'Fishing Gear',
+                    'type': 'string'
+                }),
+            ])),
+        ])),
+
+
+        # Stranding definition
+        ('Stranding', OrderedDict([
+            ('type', 'object'),
+            ('properties', OrderedDict([
+                ('stranding_info', {
+                    'title': 'Stranding Info',
                     'type': 'string'
                 }),
             ])),
@@ -282,7 +287,7 @@ observation_schema = OrderedDict([
     ])),
     ('type', 'object'),
     ('properties', OrderedDict([
-        ('observation', {'$ref': '#/definitions/Observation'}),
+        ('Observation', {'$ref': '#/definitions/Observation'}),
     ]))
 ])
 
@@ -317,8 +322,8 @@ class TestFABConditionalViews(TestCase):
 
     def test_oneOf(self):
         k, v = oneOf(OrderedDict([
-            (StrandingView, {'cause_of_death': 'stranding'}),
             (BycatchView, {'cause_of_death': 'bycatch'}),
+            (StrandingView, {'cause_of_death': 'stranding'}),
         ])).get_json_schema(DeadObservationView, self.converter)
         print("Received")
         pprint(v)
