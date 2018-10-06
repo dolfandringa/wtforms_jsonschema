@@ -117,7 +117,31 @@ class BaseConverter(object):
 
         return fieldtype, options, required
 
+    def convert_field(self, field):
+        """
+        Convert a field to its json schema version.
+        """
+        cls = field.__class__
+        if cls not in self.converters.keys():
+            raise UnsupportedFieldException(cls)
+        d = {}
+        log.debug('Using converter %s' % self.converters[cls])
+        fieldtype, attrs, req = self.converters[cls](field)
+        log.debug('fieldtype, attrs, req: %s, %s, %s' % (fieldtype, attrs,
+                                                         req))
+        if fieldtype is not None:
+            d['type'] = fieldtype
+        for k, v in attrs.items():
+            d[k] = v
+        d['title'] = field.label.text
+        if field.description != '':
+            d['description'] = field.description
+        return d, req
+
     def convert(self, form):
+        """
+        Convert a Form to JSON Schema.
+        """
         log.info("Converting form %s to JSON Schema" % form)
         if isinstance(form, FormMeta):
             form = form()
@@ -140,21 +164,8 @@ class BaseConverter(object):
                 schema['properties'][key] = subform
                 subform['title'] = field.label.text
                 continue
-            if cls not in self.converters.keys():
-                raise UnsupportedFieldException(cls)
-            d = {}
-            log.debug('Using converter %s' % self.converters[cls])
-            fieldtype, attrs, req = self.converters[cls](field)
-            log.debug('fieldtype, attrs, req: %s, %s, %s' % (fieldtype, attrs,
-                                                             req))
-            if fieldtype is not None:
-                d['type'] = fieldtype
-            for k, v in attrs.items():
-                d[k] = v
-            d['title'] = field.label.text
-            if field.description != '':
-                d['description'] = field.description
-            schema['properties'][key] = d
+            field_schema, req = self.convert_field(field)
+            schema['properties'][key] = field_schema
             if req:
                 required.append(key)
         if len(required) > 0:

@@ -3,7 +3,7 @@ from collections import OrderedDict
 from wtforms_jsonschema2.fab import FABConverter
 from unittest import TestCase
 from wtforms.form import Form
-from flask_appbuilder.fields import QuerySelectField
+from flask_appbuilder.fields import QuerySelectField, EnumField
 from flask_appbuilder import AppBuilder
 from flask import Flask
 from flask_appbuilder import ModelView
@@ -305,6 +305,14 @@ class TestFABFormConvert(TestCase):
         pprint(person_observation_schema)
         self.assertEqual(schema, person_observation_schema)
         self.db.session.commit()
+
+    def test_enum_field(self):
+
+        class testform(Form):
+            enumfield = EnumField(['option1', 'option2'])
+
+        field, req = self.converter.convert_field(testform().enumfield)
+        self.assertEqual(field, {'enum': ['option1', 'option2']})
 
     def test_fab_form(self):
         schema = self.converter.convert(FABTestForm)
