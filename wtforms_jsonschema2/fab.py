@@ -20,7 +20,8 @@ class FABConverter(BaseConverter):
     @converts(EnumField)
     def convert_enum_field(self, field):
         fieldtype = 'string'
-        options = {'enum': [c for c in field.iter_choices()]}
+        options = {'enum': [{'id': c[0], 'label': str(c[1])}
+                            for c in field.iter_choices()]}
         required = False
         vals = dict([(v.__class__, v) for v in field.validators])
         required = self._is_required(vals)
