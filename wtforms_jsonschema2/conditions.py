@@ -27,17 +27,29 @@ class oneOf(ViewCondition):
     (and not the others).
     """
 
-    def get_json_schema(self, view):
+    def get_json_schema(self, view, converter):
         """Return the JSON Schema version of this condition."""
         schema = []
         for rel_view, condition in self.conditions.items():
             schema_cond = OrderedDict([('properties', OrderedDict()),
                                        ('required', [])])
-            for field, val in condition.items():
+            for fieldname, val in condition.items():
+                field, req = converter.convert_field(getattr(view().add_form(),
+                                                             fieldname))
                 if not isinstance(val, list):
                     val = [val]
-                schema_cond['properties'][field] = {'enum': val}
-                schema_cond['required'].append(field)
+                if 'enum' in field.keys():
+                    # convert val to the same format as the enum field
+                    newvals = []
+                    for v in val:
+                        for c in field['enum']:
+                            if isinstance(c, dict) and c['id'] == v:
+                                newvals.append(c)
+                            elif c == v:
+                                newvals.append(c)
+                    val = newvals
+                schema_cond['properties'][fieldname] = {'enum': val}
+                schema_cond['required'].append(fieldname)
 
             for field in rel_view.datamodel.get_related_fks([view]):
                 defin = _get_related_view_property(view, rel_view, field)

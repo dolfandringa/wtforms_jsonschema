@@ -112,10 +112,11 @@ class DeadObservationView(ModelView):
     related_views = [BycatchView, StrandingView]
 
     _conditional_relations = [
-        oneOf({
-            BycatchView: {'cause_of_death': 'bycatch'},
-            StrandingView: {'cause_of_death': 'stranding'}
-        })
+        oneOf(OrderedDict([  # OrderedDict only necessary for unittest,
+                             # normally a dict is fine
+            (BycatchView, {'cause_of_death': 'bycatch'}),
+            (StrandingView, {'cause_of_death': 'stranding'})
+        ]))
     ]
 
 
@@ -131,13 +132,14 @@ class ObservationView(ModelView):
     add_columns = ['length', 'alive']
     show_title = 'Observation'
     add_title = 'Add Observation'
-    related_views = [DeadObservationView, LiveObservationView]
+    related_views = [LiveObservationView, DeadObservationView]
 
     _conditional_relations = [
-        oneOf({
-            LiveObservationView: {'alive': True},
-            DeadObservationView: {'alive': False}
-        })
+        oneOf(OrderedDict([  # OrderedDict only necessary for unittest,
+                             # normally a dict is fine
+            (LiveObservationView, {'alive': True}),
+            (DeadObservationView, {'alive': False}),
+        ]))
     ]
 
 
@@ -194,8 +196,22 @@ observation_schema = OrderedDict([
                     ])),
                     ('required', ['alive', 'dead_observation']),
                 ]),
-            ]),
-            ('additionalProperties', False)
+            ])
+        ])),
+
+
+        # Live Observation definition
+        ('LiveObservation', OrderedDict([
+            ('type', 'object'),
+            ('properties', OrderedDict([
+                ('live_observation_type', {
+                    'enum': [{'id': 'in-water', 'label': 'in-water'},
+                             {'id': 'nesting', 'label': 'nesting'}],
+                    'title': 'Live Observation Type',
+                    'type': 'string'
+                }),
+            ])),
+            ('required', ['live_observation_type']),
         ])),
 
 
@@ -204,7 +220,10 @@ observation_schema = OrderedDict([
             ('type', 'object'),
             ('properties', OrderedDict([
                 ('cause_of_death', {
-                    'enum': ['stranding', 'bycatch']
+                    'enum': [{'id': 'stranding', 'label': 'stranding'},
+                             {'id': 'bycatch', 'label': 'bycatch'}],
+                    'title': 'Cause Of Deat',
+                    'type': 'string'
                 }),
                 ('stranding', {
                     '$ref': '#/definitions/Stranding'
@@ -217,7 +236,7 @@ observation_schema = OrderedDict([
                 OrderedDict([
                     ('properties', OrderedDict([
                         ('cause_of_death', {
-                            'enum': ['stranding']
+                            'enum': [{'id': 'stranding', 'label': 'stranding'}]
                         }),
                         ('stranding', {
                             '$ref': '#/definitions/Stranding'
@@ -228,7 +247,7 @@ observation_schema = OrderedDict([
                 OrderedDict([
                     ('properties', OrderedDict([
                         ('cause_of_death', {
-                            'enum': ['bycatch']
+                            'enum': [{'id': 'bycatch', 'label': 'bycatch'}]
                         }),
                         ('bycatch', {
                             '$ref': '#/definitions/Bycatch'
@@ -236,19 +255,7 @@ observation_schema = OrderedDict([
                      ])),
                     ('required', ['cause_of_death', 'bycatch']),
                 ]),
-            ]),
-            ('additionalProperties', False)
-        ])),
-
-        # Live Observation definition
-        ('LiveObservation', OrderedDict([
-            ('type', 'object'),
-            ('properties', OrderedDict([
-                ('live_observation_type', {
-                    'enum': ['in-water', 'nesting']
-                }),
-            ])),
-            ('required', ['live_observation_type']),
+            ])
         ])),
 
         # Stranding definition
@@ -309,17 +316,23 @@ class TestFABConditionalViews(TestCase):
         db.drop_all()
 
     def test_oneOf(self):
-        k, v = oneOf({
-            StrandingView: {'cause_of_death': 'stranding'},
-            BycatchView: {'cause_of_death': 'bycatch'}
-        }).get_json_schema(DeadObservationView)
+        k, v = oneOf(OrderedDict([
+            (StrandingView, {'cause_of_death': 'stranding'}),
+            (BycatchView, {'cause_of_death': 'bycatch'}),
+        ])).get_json_schema(DeadObservationView, self.converter)
+        print("Received")
+        pprint(v)
         self.assertEqual(k, 'oneOf')
         correct = observation_schema['definitions']['DeadObservation']['oneOf']
+        print("Correct")
+        pprint(correct)
         self.assertEqual(v, correct)
 
     def test_full_conditional_view(self):
         schema = self.converter.convert(ObservationView)
+        print("Received")
         pprint(schema)
+        print("Correct")
         pprint(observation_schema)
         self.assertEqual(schema, observation_schema)
         self.db.session.commit()

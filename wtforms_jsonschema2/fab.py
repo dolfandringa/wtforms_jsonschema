@@ -122,7 +122,7 @@ class FABConverter(BaseConverter):
                         self._get_form(v, form_type))
             if hasattr(view, '_conditional_relations'):
                 for condition in view._conditional_relations:
-                    ckey, cval = condition.get_json_schema(view)
+                    ckey, cval = condition.get_json_schema(view, self)
                     schema['definitions'][name][ckey] = cval
 
         return schema
