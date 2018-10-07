@@ -34,8 +34,8 @@ class oneOf(ViewCondition):
             schema_cond = OrderedDict([('properties', OrderedDict()),
                                        ('required', [])])
             for fieldname, val in condition.items():
-                field, req = converter.convert_field(getattr(view().add_form(),
-                                                             fieldname))
+                form = converter._get_form(view, 'add')()
+                field, req = converter.convert_field(getattr(form, fieldname))
                 if not isinstance(val, list):
                     val = [val]
                 if 'enum' in field.keys():
