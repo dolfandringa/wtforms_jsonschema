@@ -318,7 +318,7 @@ class TestFABFormConvert(TestCase):
                                            'label': 'option2'}
                                           ],
                                  'title': 'Enumfield',
-                                 'type': 'string'})
+                                 'type': 'object'})
 
     def test_fab_form(self):
         schema = self.converter.convert(FABTestForm)

@@ -3,7 +3,6 @@ from collections import OrderedDict
 from wtforms_jsonschema2.fab import FABConverter
 from wtforms_jsonschema2.conditions import oneOf
 from unittest import TestCase
-from flask_appbuilder.fields import QuerySelectField
 from flask_appbuilder import AppBuilder
 from flask import Flask
 from flask_appbuilder import ModelView
@@ -165,12 +164,6 @@ observation_schema = OrderedDict([
                     'title': 'Alive',
                     'type': 'boolean',
                 }),
-                ('live_observation', {
-                    '$ref': '#/definitions/LiveObservation'
-                }),
-                ('dead_observation', {
-                    '$ref': '#/definitions/DeadObservation'
-                }),
             ])),
             ('required', ['length']),
             ('oneOf', [  # require one and only one of these two relations
@@ -208,7 +201,7 @@ observation_schema = OrderedDict([
                     'enum': [{'id': 'in-water', 'label': 'in-water'},
                              {'id': 'nesting', 'label': 'nesting'}],
                     'title': 'Live Observation Type',
-                    'type': 'string'
+                    'type': 'object'
                 }),
             ])),
             ('required', ['live_observation_type']),
@@ -223,14 +216,9 @@ observation_schema = OrderedDict([
                     'enum': [{'id': 'stranding', 'label': 'stranding'},
                              {'id': 'bycatch', 'label': 'bycatch'}],
                     'title': 'Cause Of Death',
-                    'type': 'string'
+                    'type': 'object'
                 }),
-                ('bycatch', {
-                    '$ref': '#/definitions/Bycatch'
-                }),
-                ('stranding', {
-                    '$ref': '#/definitions/Stranding'
-                }),
+
             ])),
             ('required', ['cause_of_death']),
             ('oneOf', [
@@ -321,10 +309,13 @@ class TestFABConditionalViews(TestCase):
         db.drop_all()
 
     def test_oneOf(self):
-        k, v = oneOf(OrderedDict([
+        cond = oneOf(OrderedDict([
             (BycatchView, {'cause_of_death': 'bycatch'}),
             (StrandingView, {'cause_of_death': 'stranding'}),
-        ])).get_json_schema(DeadObservationView, self.converter)
+        ]))
+        k, v = cond.get_json_schema(DeadObservationView, self.converter)
+
+        self.assertEqual(cond.affected_views, [BycatchView, StrandingView])
         print("Received")
         pprint(v)
         self.assertEqual(k, 'oneOf')

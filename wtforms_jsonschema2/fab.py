@@ -19,7 +19,7 @@ class FABConverter(BaseConverter):
 
     @converts(EnumField)
     def convert_enum_field(self, field):
-        fieldtype = 'string'
+        fieldtype = 'object'
         options = {'enum': [{'id': c[0], 'label': str(c[1])}
                             for c in field.iter_choices()]}
         required = False
@@ -83,20 +83,23 @@ class FABConverter(BaseConverter):
         schema['definitions'][name] = super().convert(
             self._get_form(view,  form_type))
         schema['properties'][name] = {'$ref': '#/definitions/%s' % name}
+        conditions = []
+        if hasattr(view, '_conditional_relations'):
+            conditions = view._conditional_relations
+            for condition in conditions:
+                ckey, cval = condition.get_json_schema(view, self)
+                schema['definitions'][name][ckey] = cval
         if view.related_views is not None:
             for v in view.related_views:
                 rel_name, rel_schema = self.convert_view(v, form_type)
                 for defin_k, defin in rel_schema['definitions'].items():
                     schema['definitions'][defin_k] = defin
-                # del rel_schema['definitions']
-                # schema['definitions'][rel_name] = rel_schema
+                if any([v in cond.affected_views for cond in conditions]):
+                    # Related view is conditional so don't add to properties
+                    continue
                 for f in v.datamodel.get_related_fks([view]):
                     defin = _get_related_view_property(view, v, f)
                     schema['definitions'][name]['properties'][f] = defin
-        if hasattr(view, '_conditional_relations'):
-            for condition in view._conditional_relations:
-                ckey, cval = condition.get_json_schema(view, self)
-                schema['definitions'][name][ckey] = cval
         return name, schema
 
     def convert(self, views, form_type='add'):
