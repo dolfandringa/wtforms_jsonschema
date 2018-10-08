@@ -89,12 +89,14 @@ class FABConverter(BaseConverter):
             for condition in conditions:
                 ckey, cval = condition.get_json_schema(view, self)
                 schema['definitions'][name][ckey] = cval
+        conditional_views = [cv for cond in conditions
+                             for cv in cond.affected_views]
         if view.related_views is not None:
             for v in view.related_views:
                 rel_name, rel_schema = self.convert_view(v, form_type)
                 for defin_k, defin in rel_schema['definitions'].items():
                     schema['definitions'][defin_k] = defin
-                if any([v in cond.affected_views for cond in conditions]):
+                if v in conditional_views:
                     # Related view is conditional so don't add to properties
                     continue
                 for f in v.datamodel.get_related_fks([view]):
