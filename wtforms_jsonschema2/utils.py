@@ -1,4 +1,8 @@
 import re
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 def _get_related_view_property(view, related_view, field):
@@ -23,6 +27,17 @@ def _get_related_view_property(view, related_view, field):
             .replace(' ', '')
         defin['$ref'] = '#/definitions/%s' % obj_name
     return defin
+
+
+def _is_parent_related_view_property(view, parent_view, field):
+    log.debug('Checking parent related property for {}, parent {} and field {}'
+              .format(view, parent_view, field))
+    if view.datamodel.is_relation(field):
+        parent_properties = parent_view.datamodel.get_related_fks([view])
+        log.debug('parent properties: {}'.format(parent_properties))
+        return field in parent_properties
+    else:
+        return False
 
 
 def _get_pretty_name(view, form_type):

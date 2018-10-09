@@ -4,7 +4,8 @@ from flask_appbuilder.upload import ImageUploadField
 from collections import OrderedDict
 import logging
 from .base import BaseConverter, converts
-from .utils import _get_pretty_name, _get_related_view_property
+from .utils import (_get_pretty_name, _get_related_view_property,
+                    _is_parent_related_view_property)
 from wtforms.form import Form
 
 
@@ -73,16 +74,27 @@ class FABConverter(BaseConverter):
         if form_type == 'edit':
             return view.edit_form
 
-    def convert_view(self, view, form_type='add'):
+    def convert_view(self, view, form_type='add', parentView=None):
         schema = OrderedDict([
             ('type', 'object'),
             ('definitions', OrderedDict([])),
             ('properties', OrderedDict([]))
         ])
         name = _get_pretty_name(view, 'show').replace(' ', '')
-        schema['definitions'][name] = super().convert(
+        view_definition = super().convert(
             self._get_form(view,  form_type))
-        schema['definitions'][name]['title'] = _get_pretty_name(view, 'show')
+        schema['definitions'][name] = view_definition
+        if parentView is not None:
+            # Remove references to ParientView
+            for propkey in view_definition['properties'].keys():
+                if _is_parent_related_view_property(view, parentView, propkey):
+                    log.debug('removing {}'.format(propkey))
+                    del view_definition['properties'][propkey]
+                    if propkey in view_definition['required']:
+                        view_definition['required'].remove(propkey)
+                else:
+                    log.debug('Keeping {}'.format(propkey))
+        view_definition['title'] = _get_pretty_name(view, 'show')
         schema['properties'][name] = {'$ref': '#/definitions/%s' % name}
         conditions = []
         if hasattr(view, '_conditional_relations'):
@@ -94,7 +106,8 @@ class FABConverter(BaseConverter):
                              for cv in cond.affected_views]
         if view.related_views is not None:
             for v in view.related_views:
-                rel_name, rel_schema = self.convert_view(v, form_type)
+                rel_name, rel_schema = self.convert_view(v, form_type,
+                                                         parentView=view)
                 for defin_k, defin in rel_schema['definitions'].items():
                     schema['definitions'][defin_k] = defin
                 if v in conditional_views:
