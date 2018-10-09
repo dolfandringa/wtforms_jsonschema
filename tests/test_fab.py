@@ -111,7 +111,7 @@ class Observation(db.Model):
 
 class PictureView(ModelView):
     datamodel = SQLAInterface(Picture)
-    add_columns = ['picture', 'validated']
+    add_columns = ['picture', 'validated', 'person']
     show_title = 'Picture'
     list_title = 'Pictures'
     edit_title = 'Edit Picture'
