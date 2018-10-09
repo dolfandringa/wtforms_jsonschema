@@ -76,7 +76,8 @@ observation_schema = OrderedDict([
                     ('title', 'Location')
                 ])),
             ])),
-            ('required', ['name'])
+            ('required', ['name']),
+            ('title', 'GeoObservation'),
         ]))
     ])),
     ('type', 'object'),

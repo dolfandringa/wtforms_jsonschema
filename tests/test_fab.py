@@ -175,7 +175,8 @@ person_observation_schema = OrderedDict([
                     ]
                 })
             ])),
-            ('required', ['name', 'person_type'])
+            ('required', ['name', 'person_type']),
+            ('title', 'Person'),
         ])),
         ('Picture', OrderedDict([
             ('type', 'object'),
@@ -191,7 +192,8 @@ person_observation_schema = OrderedDict([
                     'type': 'boolean'
                 }),
             ])),
-            ('required', ['picture'])
+            ('required', ['picture']),
+            ('title', 'Picture'),
         ])),
         ('Observation', OrderedDict([
             ('type', 'object'),
@@ -205,7 +207,8 @@ person_observation_schema = OrderedDict([
                     'title': 'Length'
                 })
             ])),
-            ('required', ['species'])
+            ('required', ['species']),
+            ('title', 'Observation'),
         ]))
     ])),
     ('type', 'object'),
@@ -245,7 +248,8 @@ person_schema = OrderedDict([
                     ]
                 })
             ])),
-            ('required', ['name', 'person_type'])
+            ('required', ['name', 'person_type']),
+            ('title', 'Person'),
         ])),
         ('Picture', OrderedDict([
             ('type', 'object'),
@@ -261,7 +265,8 @@ person_schema = OrderedDict([
                     'type': 'boolean'
                 }),
             ])),
-            ('required', ['picture'])
+            ('required', ['picture']),
+            ('title', 'Picture'),
         ]))
     ])),
     ('type', 'object'),

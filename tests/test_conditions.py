@@ -166,6 +166,7 @@ observation_schema = OrderedDict([
                 }),
             ])),
             ('required', ['length']),
+            ('title', 'Observation'),
             ('oneOf', [  # require one and only one of these two relations
                 OrderedDict([
                     ('properties', OrderedDict([
@@ -205,6 +206,7 @@ observation_schema = OrderedDict([
                 }),
             ])),
             ('required', ['live_observation_type']),
+            ('title', 'Live Observation'),
         ])),
 
 
@@ -221,6 +223,7 @@ observation_schema = OrderedDict([
 
             ])),
             ('required', ['cause_of_death']),
+            ('title', 'Dead Observation'),
             ('oneOf', [
                 OrderedDict([
                     ('properties', OrderedDict([
@@ -257,6 +260,7 @@ observation_schema = OrderedDict([
                     'type': 'string'
                 }),
             ])),
+            ('title', 'Bycatch'),
         ])),
 
 
@@ -269,6 +273,7 @@ observation_schema = OrderedDict([
                     'type': 'string'
                 }),
             ])),
+            ('title', 'Stranding'),
         ])),
 
 

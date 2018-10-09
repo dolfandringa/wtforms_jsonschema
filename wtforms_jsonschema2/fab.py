@@ -82,6 +82,7 @@ class FABConverter(BaseConverter):
         name = _get_pretty_name(view, 'show').replace(' ', '')
         schema['definitions'][name] = super().convert(
             self._get_form(view,  form_type))
+        schema['definitions'][name]['title'] = _get_pretty_name(view, 'show')
         schema['properties'][name] = {'$ref': '#/definitions/%s' % name}
         conditions = []
         if hasattr(view, '_conditional_relations'):
