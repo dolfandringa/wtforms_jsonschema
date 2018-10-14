@@ -11,11 +11,15 @@ def _get_related_view_property(view, related_view, field):
     into a property for jsonschema.
     """
     defin = {}
+    log.debug('Checking view {}, related view {} and field {}'
+              .format(view, related_view, field))
     if view.datamodel.is_relation_one_to_one(field):
+        log.debug('Got a one-to-one relation')
         title = obj_name = _get_pretty_name(related_view, 'show')\
             .replace(' ', '')
         defin['$ref'] = '#/definitions/%s' % obj_name
     elif view.datamodel.is_relation_one_to_many(field):
+        log.debug('Got a one-to-many relation')
         title = _get_pretty_name(related_view, 'list')
         obj_name = _get_pretty_name(related_view, 'show').replace(' ', '')
         ref = '#/definitions/%s' % obj_name

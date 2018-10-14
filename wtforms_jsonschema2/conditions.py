@@ -54,11 +54,14 @@ class oneOf(ViewCondition):
                     # convert val to the same format as the enum field
                     newvals = []
                     for v in val:
+                        log.debug('val: {}'.format(v))
+                        log.debug('enum: {}'.format(field['enum']))
                         for c in field['enum']:
                             if isinstance(c, dict) and c['id'] == v:
                                 newvals.append(c)
                             elif c == v:
                                 newvals.append(c)
+                    log.debug('newvals: {}'.format(newvals))
                     val = newvals
                 schema_cond['properties'][fieldname] = {'enum': val}
                 schema_cond['required'].append(fieldname)

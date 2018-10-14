@@ -5,8 +5,9 @@ from wtforms_jsonschema2.exceptions import UnsupportedFieldException
 from unittest import TestCase
 from wtforms.form import Form
 from wtforms import validators
-from wtforms.fields.core import (StringField, DecimalField, SelectField,
-                                 IntegerField, Field, DateTimeField)
+from wtforms.fields import (StringField, DecimalField, SelectField,
+                            IntegerField, Field, DateTimeField,
+                            TextAreaField)
 from wtforms.widgets import TextInput
 
 
@@ -36,7 +37,8 @@ class StringTestForm(Form):
             }),
             ('simplestring', {
                 'type': 'string',
-                'title': 'Simple String'
+                'title': 'Simple String',
+                'maxLength': 255
             }),
             ('dt', {
                 'type': 'string',
@@ -57,17 +59,23 @@ class SimpleTestForm(Form):
         ('properties', OrderedDict([
             ('first_name', {
                 'type': 'string',
-                'title': 'First Name'
+                'title': 'First Name',
+                'maxLength': 255
             }),
             ('nick_name', {
                 'type': 'string',
-                'title': 'Nickname'
+                'title': 'Nickname',
+                'maxLength': 255
             }),
             ('age', {
                 'type': 'integer',
                 'title': 'Age',
                 'minimum': 0,
                 'maximum': 10
+            }),
+            ('description', {
+                'type': 'string',
+                'title': 'Description'
             }),
             ('average', {
                 'type': 'number',
@@ -89,7 +97,7 @@ class SimpleTestForm(Form):
                 'type': 'number',
                 'title': 'Bla',
                 'enum': [1.5, 2.2, 3]
-            })
+            }),
         ])),
         ('required', ['first_name', 'age'])
     ])
@@ -97,6 +105,7 @@ class SimpleTestForm(Form):
     nick_name = StringField('Nickname')
     age = IntegerField('Age', validators=[validators.number_range(0, 10),
                                           validators.required()])
+    description = TextAreaField('Description')
     average = DecimalField('Average',
                            validators=[validators.number_range(10, 1000)])
     gender = SelectField("Gender", choices=['Male', 'Female', 'Alien',

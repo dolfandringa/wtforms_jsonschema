@@ -11,6 +11,7 @@ from sqlalchemy import (Column, Integer, String, ForeignKey, Numeric,
                         Boolean, MetaData, create_engine, Enum)
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
+import enum
 
 
 cfg = {'SQLALCHEMY_DATABASE_URI': 'sqlite:///',
@@ -32,6 +33,11 @@ appbuilder = AppBuilder(app, db.session)
 db.session.commit()
 
 
+class CauseOfDeathEnum(enum.Enum):
+    bycatch = 'bycatch'
+    stranding = 'stranding'
+
+
 class BaseObservation(db.Model):
     __tablename__ = 'observation'
     id = Column(Integer, primary_key=True)
@@ -50,7 +56,7 @@ class DeadObservation(db.Model):
     id = Column(Integer, primary_key=True)
     observation_id = Column(Integer, ForeignKey('observation.id'),
                             nullable=False)
-    cause_of_death = Column(Enum('stranding', 'bycatch'), nullable=False)
+    cause_of_death = Column(Enum(CauseOfDeathEnum), nullable=False)
     base_observation = relationship(BaseObservation,
                                     back_populates='dead_observation')
     stranding = relationship('Stranding', back_populates='dead_observation',
@@ -215,8 +221,8 @@ observation_schema = OrderedDict([
             ('type', 'object'),
             ('properties', OrderedDict([
                 ('cause_of_death', {
-                    'enum': [{'id': 'stranding', 'label': 'stranding'},
-                             {'id': 'bycatch', 'label': 'bycatch'}],
+                    'enum': [{'id': 'bycatch', 'label': 'bycatch'},
+                             {'id': 'stranding', 'label': 'stranding'}],
                     'title': 'Cause Of Death',
                     'type': 'object'
                 }),
@@ -257,7 +263,8 @@ observation_schema = OrderedDict([
             ('properties', OrderedDict([
                 ('fishing_gear', {
                     'title': 'Fishing Gear',
-                    'type': 'string'
+                    'type': 'string',
+                    'maxLength': 255
                 }),
             ])),
             ('title', 'Bycatch'),
@@ -270,7 +277,8 @@ observation_schema = OrderedDict([
             ('properties', OrderedDict([
                 ('stranding_info', {
                     'title': 'Stranding Info',
-                    'type': 'string'
+                    'type': 'string',
+                    'maxLength': 255
                 }),
             ])),
             ('title', 'Stranding'),
