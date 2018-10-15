@@ -3,7 +3,6 @@ from collections import OrderedDict
 from wtforms_jsonschema2.fab import FABConverter
 from wtforms_jsonschema2.conditions import oneOf
 from unittest import TestCase
-from flask_appbuilder.fields import QuerySelectField
 from flask_appbuilder import AppBuilder
 from flask import Flask
 from flask_appbuilder import ModelView
@@ -12,6 +11,7 @@ from sqlalchemy import (Column, Integer, String, ForeignKey, Numeric,
                         Boolean, MetaData, create_engine, Enum)
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
+import enum
 
 
 cfg = {'SQLALCHEMY_DATABASE_URI': 'sqlite:///',
@@ -33,6 +33,11 @@ appbuilder = AppBuilder(app, db.session)
 db.session.commit()
 
 
+class CauseOfDeathEnum(enum.Enum):
+    bycatch = 'bycatch'
+    stranding = 'stranding'
+
+
 class BaseObservation(db.Model):
     __tablename__ = 'observation'
     id = Column(Integer, primary_key=True)
@@ -51,7 +56,7 @@ class DeadObservation(db.Model):
     id = Column(Integer, primary_key=True)
     observation_id = Column(Integer, ForeignKey('observation.id'),
                             nullable=False)
-    cause_of_death = Column(Enum('stranding', 'bycatch'), nullable=False)
+    cause_of_death = Column(Enum(CauseOfDeathEnum), nullable=False)
     base_observation = relationship(BaseObservation,
                                     back_populates='dead_observation')
     stranding = relationship('Stranding', back_populates='dead_observation',
@@ -165,14 +170,9 @@ observation_schema = OrderedDict([
                     'title': 'Alive',
                     'type': 'boolean',
                 }),
-                ('live_observation', {
-                    '$ref': '#/definitions/LiveObservation'
-                }),
-                ('dead_observation', {
-                    '$ref': '#/definitions/DeadObservation'
-                }),
             ])),
             ('required', ['length']),
+            ('title', 'Observation'),
             ('oneOf', [  # require one and only one of these two relations
                 OrderedDict([
                     ('properties', OrderedDict([
@@ -208,10 +208,11 @@ observation_schema = OrderedDict([
                     'enum': [{'id': 'in-water', 'label': 'in-water'},
                              {'id': 'nesting', 'label': 'nesting'}],
                     'title': 'Live Observation Type',
-                    'type': 'string'
+                    'type': 'object'
                 }),
             ])),
             ('required', ['live_observation_type']),
+            ('title', 'Live Observation'),
         ])),
 
 
@@ -220,19 +221,15 @@ observation_schema = OrderedDict([
             ('type', 'object'),
             ('properties', OrderedDict([
                 ('cause_of_death', {
-                    'enum': [{'id': 'stranding', 'label': 'stranding'},
-                             {'id': 'bycatch', 'label': 'bycatch'}],
+                    'enum': [{'id': 'bycatch', 'label': 'bycatch'},
+                             {'id': 'stranding', 'label': 'stranding'}],
                     'title': 'Cause Of Death',
-                    'type': 'string'
+                    'type': 'object'
                 }),
-                ('bycatch', {
-                    '$ref': '#/definitions/Bycatch'
-                }),
-                ('stranding', {
-                    '$ref': '#/definitions/Stranding'
-                }),
+
             ])),
             ('required', ['cause_of_death']),
+            ('title', 'Dead Observation'),
             ('oneOf', [
                 OrderedDict([
                     ('properties', OrderedDict([
@@ -266,9 +263,11 @@ observation_schema = OrderedDict([
             ('properties', OrderedDict([
                 ('fishing_gear', {
                     'title': 'Fishing Gear',
-                    'type': 'string'
+                    'type': 'string',
+                    'maxLength': 255
                 }),
             ])),
+            ('title', 'Bycatch'),
         ])),
 
 
@@ -278,9 +277,11 @@ observation_schema = OrderedDict([
             ('properties', OrderedDict([
                 ('stranding_info', {
                     'title': 'Stranding Info',
-                    'type': 'string'
+                    'type': 'string',
+                    'maxLength': 255
                 }),
             ])),
+            ('title', 'Stranding'),
         ])),
 
 
@@ -321,10 +322,13 @@ class TestFABConditionalViews(TestCase):
         db.drop_all()
 
     def test_oneOf(self):
-        k, v = oneOf(OrderedDict([
+        cond = oneOf(OrderedDict([
             (BycatchView, {'cause_of_death': 'bycatch'}),
             (StrandingView, {'cause_of_death': 'stranding'}),
-        ])).get_json_schema(DeadObservationView, self.converter)
+        ]))
+        k, v = cond.get_json_schema(DeadObservationView, self.converter)
+
+        self.assertEqual(cond.affected_views, [BycatchView, StrandingView])
         print("Received")
         pprint(v)
         self.assertEqual(k, 'oneOf')

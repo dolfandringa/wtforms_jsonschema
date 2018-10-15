@@ -8,6 +8,7 @@ from decimal import Decimal
 import logging
 from .exceptions import UnsupportedFieldException
 from collections import OrderedDict
+from wtforms.fields import TextAreaField
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +38,14 @@ class BaseConverter(object):
     def _is_required(self, vals):
         return InputRequired in vals.keys() or Required in vals.keys() or \
             DataRequired in vals.keys()
+
+    @converts(TextAreaField)
+    def convert_textarea_field(self, field):
+        fieldtype = 'string'
+        vals = dict([(v.__class__, v) for v in field.validators])
+        required = self._is_required(vals)
+
+        return fieldtype, {}, required
 
     @converts(BooleanField)
     def convert_boolean_field(self, field):
@@ -70,6 +79,8 @@ class BaseConverter(object):
         if Length in vals.keys():
             options['minLength'] = vals[Length].min
             options['maxLength'] = vals[Length].max
+        elif 'format' not in options.keys():
+            options['maxLength'] = 255
 
         return fieldtype, options, required
 

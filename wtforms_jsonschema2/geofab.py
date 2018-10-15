@@ -26,24 +26,39 @@ class GeoFABConverter(FABConverter):
         except TypeError:
             views = [views]
         for view in views:
+            log.debug('Got view {}'.format(view))
             if isinstance(view, Form):
+                log.debug('Got a form')
                 form = view
                 newviews.append(view)
             else:
+                log.debug('Got a view')
                 view = view()
+                log.debug("Unbound fields: {}"
+                          .format(view.add_form._unbound_fields))
                 newviews.append(view)
-                form = self._get_form(view, form_type)
-            for fname in dir(form):
+                form = self._get_form(view, form_type)\
+
+
+            class newForm(Form):
+                pass
+
+            newfields = []
+            #for fname in dir(form):
+            for field in form():
+                fname = field.name
                 if fname.startswith('_'):
                     continue
-                field = getattr(form, fname)
                 if fname in self.skip_fields:
+                    continue
+                field = getattr(form, fname)
+                if not hasattr(field, '_formfield'):
                     continue
                 log.debug('Checking field {}'.format(fname))
                 if hasattr(field, 'field_class') and \
                         field.field_class == PointField:
                     log.debug("{} is a pointfield".format(fname))
-                    delattr(form, fname)
+                    #  delattr(form, fname)
                     latfield = deepcopy(field)
                     latfield.args = ['Latitude']+list(field.args)[1:]
                     latfield.kwargs['coordinate_type'] = 'latitude'
@@ -55,7 +70,14 @@ class GeoFABConverter(FABConverter):
                         pass
                     subform.lat = latfield
                     subform.lon = lonfield
-                    setattr(form, fname, FormField(subform))
+                    field = FormField(subform)
+                setattr(newForm, fname, field)
+                newfields.append((fname, field))
+            newForm._unbound_fields = newfields
+            setattr(view, '{}_form'.format(form_type), newForm)
+            log.debug('NewFields: {}'.format(newfields))
+            log.debug("Fields: {}"
+                      .format([f.name for f in self._get_form(view, form_type)()]))
         return super().convert(newviews, form_type)
 
     @converts(PointField)

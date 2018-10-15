@@ -3,13 +3,13 @@ from collections import OrderedDict
 from wtforms_jsonschema2.fab import FABConverter
 from unittest import TestCase
 from wtforms.form import Form
-from flask_appbuilder.fields import QuerySelectField, EnumField
+from flask_appbuilder.fields import (QuerySelectField, EnumField)
 from flask_appbuilder import AppBuilder
 from flask import Flask
 from flask_appbuilder import ModelView
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from sqlalchemy import (Column, Integer, String, ForeignKey, DateTime, Numeric,
-                        Boolean)
+                        Boolean, Text)
 from flask_appbuilder.models.mixins import ImageColumn
 from sqlalchemy import MetaData, create_engine
 from flask_sqlalchemy import SQLAlchemy
@@ -111,7 +111,7 @@ class Observation(db.Model):
 
 class PictureView(ModelView):
     datamodel = SQLAInterface(Picture)
-    add_columns = ['picture', 'validated']
+    add_columns = ['picture', 'validated', 'person']
     show_title = 'Picture'
     list_title = 'Pictures'
     edit_title = 'Edit Picture'
@@ -140,6 +140,44 @@ class ObservationView(ModelView):
     add_title = 'Add Observation'
 
 
+class TextModel(db.Model):
+    id = Column(Integer, primary_key=True)
+    stringfield = Column(String)
+    textfield = Column(Text)
+
+
+class TextView(ModelView):
+    datamodel = SQLAInterface(TextModel)
+    add_columns = ['textfield', 'stringfield']
+    show_title = 'Text'
+    add_title = 'Add Text'
+
+
+text_schema = OrderedDict([
+    ('type', 'object'),
+    ('definitions', OrderedDict([
+        ('Text', OrderedDict([
+            ('type', 'object'),
+            ('properties', OrderedDict([
+                ('textfield', {
+                    'type': 'string',
+                    'title': 'Textfield',
+                }),
+                ('stringfield', {
+                    'type': 'string',
+                    'title': 'Stringfield',
+                    'maxLength':  255
+                }),
+            ])),
+            ('title', 'Text')
+        ]))
+    ])),
+    ('properties', OrderedDict([
+        ('Text', {'$ref': '#/definitions/Text'})
+    ]))
+])
+
+
 appbuilder.add_view(PersonView, 'people')
 appbuilder.add_view(PersonTypeView, 'people types')
 appbuilder.add_view(PictureView, 'pictures')
@@ -154,7 +192,8 @@ person_observation_schema = OrderedDict([
             ('properties', OrderedDict([
                 ('name', {
                     'type': 'string',
-                    'title': 'Name'
+                    'title': 'Name',
+                    'maxLength': 255
                 }),
                 ('dt', {
                     'type': 'string',
@@ -175,7 +214,8 @@ person_observation_schema = OrderedDict([
                     ]
                 })
             ])),
-            ('required', ['name', 'person_type'])
+            ('required', ['name', 'person_type']),
+            ('title', 'Person'),
         ])),
         ('Picture', OrderedDict([
             ('type', 'object'),
@@ -191,21 +231,24 @@ person_observation_schema = OrderedDict([
                     'type': 'boolean'
                 }),
             ])),
-            ('required', ['picture'])
+            ('required', ['picture']),
+            ('title', 'Picture'),
         ])),
         ('Observation', OrderedDict([
             ('type', 'object'),
             ('properties', OrderedDict([
                 ('species', {
                     'type': 'string',
-                    'title': 'Species'
+                    'title': 'Species',
+                    'maxLength': 255
                 }),
                 ('length', {
                     'type': 'number',
                     'title': 'Length'
                 })
             ])),
-            ('required', ['species'])
+            ('required', ['species']),
+            ('title', 'Observation'),
         ]))
     ])),
     ('type', 'object'),
@@ -224,7 +267,8 @@ person_schema = OrderedDict([
             ('properties', OrderedDict([
                 ('name', {
                     'type': 'string',
-                    'title': 'Name'
+                    'title': 'Name',
+                    'maxLength': 255
                 }),
                 ('dt', {
                     'type': 'string',
@@ -245,7 +289,8 @@ person_schema = OrderedDict([
                     ]
                 })
             ])),
-            ('required', ['name', 'person_type'])
+            ('required', ['name', 'person_type']),
+            ('title', 'Person'),
         ])),
         ('Picture', OrderedDict([
             ('type', 'object'),
@@ -261,7 +306,8 @@ person_schema = OrderedDict([
                     'type': 'boolean'
                 }),
             ])),
-            ('required', ['picture'])
+            ('required', ['picture']),
+            ('title', 'Picture'),
         ]))
     ])),
     ('type', 'object'),
@@ -292,6 +338,13 @@ class TestFABFormConvert(TestCase):
             pass
         db.drop_all()
 
+    def test_text_fields(self):
+        schema = self.converter.convert(TextView)
+        pprint(schema)
+        pprint(text_schema)
+        self.assertEqual(schema, text_schema)
+        self.db.session.commit()
+
     def test_full_view(self):
         schema = self.converter.convert(PersonView)
         pprint(schema)
@@ -318,7 +371,7 @@ class TestFABFormConvert(TestCase):
                                            'label': 'option2'}
                                           ],
                                  'title': 'Enumfield',
-                                 'type': 'string'})
+                                 'type': 'object'})
 
     def test_fab_form(self):
         schema = self.converter.convert(FABTestForm)

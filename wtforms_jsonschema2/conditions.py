@@ -1,5 +1,10 @@
 from collections import OrderedDict
 from .utils import _get_related_view_property
+from flask_appbuilder.views import BaseView
+import inspect
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class ViewCondition:
@@ -8,6 +13,7 @@ class ViewCondition:
     """
     def __init__(self, conditions):
         self.conditions = conditions
+        self.affected_views = []
 
     def get_json_schema(self, view):
         """Return the JSON Schema version of this condition."""
@@ -27,6 +33,12 @@ class oneOf(ViewCondition):
     (and not the others).
     """
 
+    def __init__(self, conditions):
+        super().__init__(conditions)
+        for k in conditions.keys():
+            if inspect.isclass(k) and issubclass(k, BaseView):
+                self.affected_views.append(k)
+
     def get_json_schema(self, view, converter):
         """Return the JSON Schema version of this condition."""
         schema = []
@@ -42,11 +54,15 @@ class oneOf(ViewCondition):
                     # convert val to the same format as the enum field
                     newvals = []
                     for v in val:
+                        log.debug('val: {}'.format(v))
+                        log.debug('enum: {}'.format(field['enum']))
                         for c in field['enum']:
-                            if isinstance(c, dict) and c['id'] == v:
+                            if isinstance(c, dict) and (c['id'] == v or
+                                                        c['label'] == v):
                                 newvals.append(c)
                             elif c == v:
                                 newvals.append(c)
+                    log.debug('newvals: {}'.format(newvals))
                     val = newvals
                 schema_cond['properties'][fieldname] = {'enum': val}
                 schema_cond['required'].append(fieldname)

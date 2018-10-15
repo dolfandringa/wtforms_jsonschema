@@ -1,4 +1,8 @@
 import re
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 def _get_related_view_property(view, related_view, field):
@@ -7,11 +11,15 @@ def _get_related_view_property(view, related_view, field):
     into a property for jsonschema.
     """
     defin = {}
+    log.debug('Checking view {}, related view {} and field {}'
+              .format(view, related_view, field))
     if view.datamodel.is_relation_one_to_one(field):
+        log.debug('Got a one-to-one relation')
         title = obj_name = _get_pretty_name(related_view, 'show')\
             .replace(' ', '')
         defin['$ref'] = '#/definitions/%s' % obj_name
     elif view.datamodel.is_relation_one_to_many(field):
+        log.debug('Got a one-to-many relation')
         title = _get_pretty_name(related_view, 'list')
         obj_name = _get_pretty_name(related_view, 'show').replace(' ', '')
         ref = '#/definitions/%s' % obj_name
@@ -23,6 +31,21 @@ def _get_related_view_property(view, related_view, field):
             .replace(' ', '')
         defin['$ref'] = '#/definitions/%s' % obj_name
     return defin
+
+
+def _is_parent_related_view_property(view, parent_view, field):
+    log.debug('Checking parent related property for {}, parent {} and field {}'
+              .format(view, parent_view, field))
+    if view.datamodel.is_relation(field):
+        parent_properties = parent_view.datamodel.get_related_fks([view])
+        log.debug('parent properties: {}'.format(parent_properties))
+        return field in parent_properties
+    else:
+        return False
+
+
+def _get_view_name(view):
+    return _get_pretty_name(view, 'show').replace(' ', '')
 
 
 def _get_pretty_name(view, form_type):

@@ -34,6 +34,8 @@ class GeoObservation(db.Model):
     name = Column(String, nullable=False)
     location = Column(Geometry(geometry_type='POINT', srid=4326),
                       nullable=False)
+    textfield = Column(String)
+    textfield2 = Column(String)
 
     def __repr__(self):
         return self.name
@@ -41,7 +43,7 @@ class GeoObservation(db.Model):
 
 class GeoObservationView(GeoModelView):
     datamodel = GeoSQLAInterface(GeoObservation)
-    add_columns = ['name', 'location']
+    add_columns = ['name', 'location', 'textfield', 'textfield2']
     show_title = 'GeoObservation'
     add_title = 'Add GeoObservation'
 
@@ -56,7 +58,8 @@ observation_schema = OrderedDict([
             ('properties', OrderedDict([
                 ('name', {
                     'type': 'string',
-                    'title': 'Name'
+                    'title': 'Name',
+                    'maxLength': 255
                 }),
                 ('location', OrderedDict([
                     ('type', 'object'),
@@ -75,8 +78,19 @@ observation_schema = OrderedDict([
                     ('required', ['lat', 'lon']),
                     ('title', 'Location')
                 ])),
+                ('textfield', {
+                    'type': 'string',
+                    'title': 'Textfield',
+                    'maxLength': 255
+                }),
+                ('textfield2', {
+                    'type': 'string',
+                    'title': 'Textfield2',
+                    'maxLength': 255
+                })
             ])),
-            ('required', ['name'])
+            ('required', ['name']),
+            ('title', 'GeoObservation'),
         ]))
     ])),
     ('type', 'object'),
@@ -105,4 +119,4 @@ class TestGeoFABFormConvert(TestCase):
         schema = self.converter.convert(GeoObservationView)
         pprint(schema)
         pprint(observation_schema)
-        self.assertEqual(schema, observation_schema)
+        self.assertDictEqual(schema, observation_schema)
