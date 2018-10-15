@@ -5,7 +5,7 @@ from collections import OrderedDict
 import logging
 from .base import BaseConverter, converts
 from .utils import (_get_pretty_name, _get_related_view_property,
-                    _is_parent_related_view_property)
+                    _is_parent_related_view_property, _get_view_name)
 from wtforms.form import Form
 
 
@@ -80,7 +80,8 @@ class FABConverter(BaseConverter):
             ('definitions', OrderedDict([])),
             ('properties', OrderedDict([]))
         ])
-        name = _get_pretty_name(view, 'show').replace(' ', '')
+        # name = _get_pretty_name(view, 'show').replace(' ', '')
+        name = _get_view_name(view)
         view_definition = super().convert(
             self._get_form(view,  form_type))
         schema['definitions'][name] = view_definition

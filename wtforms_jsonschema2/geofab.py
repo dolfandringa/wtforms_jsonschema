@@ -49,9 +49,9 @@ class GeoFABConverter(FABConverter):
                 fname = field.name
                 if fname.startswith('_'):
                     continue
-                field = getattr(form, fname)
                 if fname in self.skip_fields:
                     continue
+                field = getattr(form, fname)
                 if not hasattr(field, '_formfield'):
                     continue
                 log.debug('Checking field {}'.format(fname))

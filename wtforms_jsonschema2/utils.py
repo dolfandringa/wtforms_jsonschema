@@ -44,6 +44,10 @@ def _is_parent_related_view_property(view, parent_view, field):
         return False
 
 
+def _get_view_name(view):
+    return _get_pretty_name(view, 'show').replace(' ', '')
+
+
 def _get_pretty_name(view, form_type):
     """
     Get the pretty name of a view. If defined view._pretty_name will be

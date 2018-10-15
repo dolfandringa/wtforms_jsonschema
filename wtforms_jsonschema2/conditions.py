@@ -57,7 +57,8 @@ class oneOf(ViewCondition):
                         log.debug('val: {}'.format(v))
                         log.debug('enum: {}'.format(field['enum']))
                         for c in field['enum']:
-                            if isinstance(c, dict) and c['id'] == v:
+                            if isinstance(c, dict) and (c['id'] == v or
+                                                        c['label'] == v):
                                 newvals.append(c)
                             elif c == v:
                                 newvals.append(c)
