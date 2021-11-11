@@ -1,14 +1,14 @@
 from wtforms.form import FormMeta
-from wtforms.fields.core import (StringField, IntegerField, DateTimeField,
+from wtforms import (StringField, IntegerField, DateTimeField,
                                  SelectField, DecimalField, FormField,
                                  BooleanField)
-from wtforms.validators import (Required, InputRequired, NumberRange, Length,
+from wtforms.validators import (DataRequired, InputRequired, NumberRange, Length,
                                 Email, DataRequired)
 from decimal import Decimal
 import logging
 from .exceptions import UnsupportedFieldException
 from collections import OrderedDict
-from wtforms.fields import TextAreaField
+from wtforms import TextAreaField
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class BaseConverter(object):
                     self.converters[classname] = obj
 
     def _is_required(self, vals):
-        return InputRequired in vals.keys() or Required in vals.keys() or \
+        return InputRequired in vals.keys() or DataRequired in vals.keys() or \
             DataRequired in vals.keys()
 
     @converts(TextAreaField)
